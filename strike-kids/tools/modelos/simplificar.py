@@ -47,7 +47,7 @@ for _quem in ("bob", "mia"):
         ORCAMENTO["%s_%s" % (_quem, _roupa)] = ORCAMENTO[_quem]
 
 # peças repetidas centenas de vezes (lâmpadas): orçamento próprio
-POR_PECA = {"lampada": 48, "balao": 400, "nuvem": 500, "cabine": 1200}
+POR_PECA = {"lampada": 48, "balao": 400, "nuvem": 500, "cabine": 1200, "navio": 9000}
 
 PESO_NORMAL = 0.35
 PESO_COR = 1.2

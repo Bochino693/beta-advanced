@@ -12,3 +12,5 @@ marketing/*.mp4
 
 # cache do plugin da câmera (jar do Android para compilar)
 tools/android/StrikeCamera/.cache/
+# cache do app de teste do aparelho (android-all.jar para compilar)
+tools/android/TesteAparelho/.cache/

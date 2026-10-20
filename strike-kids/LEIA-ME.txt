@@ -1,7 +1,10 @@
 STRIKE KIDS - BOLICHE INFANTIL 3D (Bob & Mia)
 =============================================
-VERSAO ALTA (avancada): cenario COMPLETO - para a TV Box TX9 e TV Boxes
-mais fortes. A versao LEVE (TV Box SmartPro) esta no GitHub "beta".
+VERSAO ALTA (avancada) - OpenGL ES 3 (Godot 4): cenario COMPLETO de
+padrao, para TV Boxes com OpenGL ES 3 (SmartPro, TX9 Pro/S912, RK3566,
+S905X4...); no menu, "Cenario (fundo)" LEVE deixa leve para a SmartPro.
+A edicao OpenGL ES 2.0 (Godot 3.6) para a TX9 comum (Mali-450/400) fica
+no GitHub "beta".
 Godot 4.6.1 - renderizador Compatibility (OpenGL ES 3) - fisica Jolt
 TV Box Android (Proeletronic SmartPro 4K, 2 GB; ou a Pro Ultra do Dragon
 Bowling), ARDUINO (5 sensores, porta das bolas, botao de configuracao e
@@ -40,6 +43,10 @@ meio-direita, direita) vira a jogada na tela, em 3D:
     de luz que dao a perspectiva da queda; os pinos escurecem conforme
     descem). As portinhas fecham e a mesa traz os pinos. Na hora da jogada
     o chao fica sempre fechado (a fisica da jogada e a mesma).
+    SO ABRE QUANDO TEM O QUE DERRUBAR: se a bola nao derrubou nenhum pino
+    (bola na canaleta, jogada errada) ou nao ha pino caido no fosso, a
+    barra varre e volta, o alcapao fica fechado e a camera nem corta para
+    o fosso.
   * RITMO MAIS RAPIDO: o jogo todo anda 30% mais rapido que o tempo real
     (bola, pinos, bichinhos, camera e as esperas) - sem mudar a fisica
     calibrada (o passo da fisica e sempre o mesmo, so acontecem mais passos
@@ -55,6 +62,14 @@ meio-direita, direita) vira a jogada na tela, em 3D:
     Diversoes, Viagem ao Espaco, Fundo do Mar, Selva dos Dinos) - todas
     aparecem antes de alguma se repetir, e nunca a mesma em duas rodadas
     seguidas. A tela inicial vai mostrando as 4.
+  * NAVIO PIRATA NO FUNDO DO MAR: atras dos pinos, onde antes ficava a
+    concha gigante (que aparecia cortada pela parede), agora tem um NAVIO
+    PIRATA NAUFRAGADO inteiro, pousado na areia, em diagonal e levemente
+    inclinado: casco de tabuas com faixa dourada e escotilhas, castelos de
+    proa e de popa, gurupes, tres mastros com cesto da gavea, velas
+    estufadas listradas de vermelho e a bandeira preta de caveira - os
+    mastros e as velas aparecem por cima do arco. Corais e algas foram
+    espalhados em volta sem encostar nele.
   * ROUPINHA DE CADA FASE (pecas 3D de verdade, com volume): no Fundo do
     Mar o Bob e a Mia viram PIRATAS (chapeu com caveirinha / bandana de
     bolinhas, camiseta listrada, cinto com fivela, botas de cano dobrado);
@@ -414,7 +429,7 @@ tela de em pe para deitada (giro 0).
   Modo livre ou fichas por partida         Tempo sem jogar ate o aviso
   Volume da musica e dos efeitos           Som na demonstracao
   Qualidade grafica (automatica/alta/media/baixa)
-  Cenario (fundo): COMPLETO (padrao desta versao, a ALTA) ou LEVE
+  Cenario (fundo): COMPLETO (padrao desta versao) ou LEVE (SmartPro)
   Mostrar desempenho na tela (QPS) - TESTE DE DESEMPENHO (20 s)
   Giro da tela (1, -1, 0)
   Teste dos sensores (ao vivo, com o Arduino) - Calibrar sensores
@@ -425,11 +440,11 @@ tela de em pe para deitada (giro 0).
   Aparelho: modelo, versao do Android, placa de video, nucleos e memoria
     (para saber qual TV Box e - ver "TV BOX TX9" abaixo)
 
-DUAS VERSOES: ALTA (esta, no GitHub "beta-advanced") e LEVE (GitHub "beta")
----------------------------------------------------------------------------
+DOIS CENARIOS NESTA VERSAO: COMPLETO (padrao) e LEVE (no menu)
+--------------------------------------------------------------
 O jogo e o mesmo nas duas (mesmas regras, pista, pinos, bichinhos, fisica
 e correcoes de fluidez). Muda so o CENARIO (o fundo):
-  COMPLETO (versao ALTA, padrao desta): chao e ceu desenhados pixel a pixel (gramado com
+  COMPLETO (padrao desta versao): chao e ceu desenhados pixel a pixel (gramado com
     florzinhas, crateras, conchinhas, estrelas, raios de luz), toda a
     decoracao (arvores, baloes, nuvens, peixinhos, bolhas, fumaca),
     contornos e neblina de profundidade da placa de video.
@@ -437,7 +452,7 @@ e correcoes de fluidez). Muda so o CENARIO (o fundo):
     por pixel em vez de 9 sorteios - era o que deixava a ALTA lenta) com a
     luz e a neblina EXATAS do motor (a cor nao mudou); o ceu e os
     contornos tambem ficaram mais baratos. Mesmo visual, bem mais leve.
-  LEVE (padrao da versao do GitHub "beta", para a TV Box SmartPro / Mali-G31): o mesmo
+  LEVE (escolha no menu, para a TV Box SmartPro / Mali-G31): o mesmo
     desenho do chao feito com contas ate 4x mais baratas, a luz do chao e
     da decoracao calculada por vertice (nao por pixel), metade da
     decoracao do fundo e sem contorno nela, ceu simples e uma neblina
@@ -458,9 +473,40 @@ TV BOX TX9 (para a versao ALTA)
     H313 / H616 / H618, Amlogic S905X2/X3/X4) e Mali-G52. NAO RODA nas de
     Mali-400/450 (Rockchip RK3228A/RK3229/RK3318/RK3328, Amlogic S905W/
     S905X), que so tem OpenGL ES 2 - nelas o jogo nem abre.
+  A TX9 "comum" (Youit TX9 2 GB / 16 GB) vem com Amlogic S905X (Mali-450)
+  ou Rockchip RK3229 (Mali-400): placa de video so com OpenGL ES 2.0. Por
+  isso NENHUMA das versoes (LEVE e ALTA) abre nela - nao e defeito do APK:
+  o motor do jogo (Godot 4, renderizador Compatibility) exige OpenGL ES
+  3.0 e nao tem modo OpenGL ES 2. O "64 bits" do anuncio e o processador,
+  nao a placa de video. Para essa caixa existe a EDICAO OpenGL ES 2.0
+  (Godot 3.6, efeitos mais simples), no GitHub "beta".
+
+  APP "TESTE DO APARELHO" (StrikeKids_TesteAparelho.apk, 90 KB, sem
+  internet e sem permissao, abre em qualquer Android 4.1 ou mais novo):
+  instale na TV Box e abra o icone "Teste do Aparelho (Strike Kids)". A
+  faixa colorida de cima ja diz se RODA (verde) ou NAO RODA (vermelho) e
+  qual versao usar; embaixo vem o chip, a placa de video, o OpenGL ES 2 e
+  o 3 (fabricante, modelo e versao), o Android, 32/64 bits, a memoria de
+  verdade (anuncio de "16 GB de RAM" costuma ser 1 a 2 GB), o
+  armazenamento, a tela, o USB e as cameras. Tudo fica gravado em
+  Android/data/com.lazersport.testeaparelho/files/aparelho.txt. O codigo
+  fica em tools/android/TesteAparelho (o construir.sh monta o APK).
+
+  TV BOXES QUE RODAM (procure o CHIP no anuncio ou na caixa, nao o nome
+  "TX9", "MXQ", "X96"...):
+    Allwinner H313 / H616 / H618 (Mali-G31) - igual a SmartPro: LEVE liso
+    Amlogic S905W2 / S905X2 / S905X3 / S905X4 / S905Y4 (Mali-G31) - LEVE
+    Rockchip RK3566 / RK3568 (Mali-G52) - ALTA com folga
+    Amlogic S922X (Mali-G52) - ALTA com muita folga
+    Amlogic S912 (Mali-T820, a "TX9 Pro" original) - roda (chip antigo)
+  NAO RODAM (Mali-400/450, so OpenGL ES 2): Amlogic S905X / S905W / S905L
+  (sem o 2, 3 ou 4 no fim), Rockchip RK3228A / RK3229 / RK3318 / RK3328 /
+  RK3528 e Allwinner H3. A caixa precisa de 2 portas USB (Arduino e
+  camera).
+
   Para ver qual e a sua: menu do operador, linha "Aparelho" (placa de
-  video). Se o jogo nao abrir, instale o app CPU-Z: a aba SOC mostra o
-  chip e a GPU.
+  video), ou o app TESTE DO APARELHO acima (abre mesmo quando o jogo nao
+  abre).
   Na primeira vez, deixe a "Qualidade grafica" em AUTOMATICA e rode o
   TESTE DE DESEMPENHO (menu do operador): ele mede a TV Box e ja deixa a
   qualidade certa; a nitidez automatica cuida do resto.
@@ -527,6 +573,17 @@ RODANDO LISO (PC e TV Box):
     tela inicial) seguem uma curva suave que passa pelos pontos do caminho
     sem frear - antes a camera parava um instante em cada ponto, o que
     parecia uma travada.
+  * TELA DE START E ESCOLHA MAIS LEVES: as placas e os botoes das telas
+    (Painel3D) refaziam em TODO pixel as contas da borda arredondada, da
+    frente, do verniz e da sombra; agora as medidas que nao mudam de pixel
+    para pixel vem prontas, a largura do pixel e medida uma vez so e a
+    sombra e o verniz so sao calculados onde aparecem - o mesmo desenho,
+    bem menos conta para a placa de video. E com o quadro "QUANTOS VAO
+    JOGAR?" aberto (1 ou 2 jogadores) o 3D de tras FICA PARADO na ultima
+    imagem, com um veu azul-escuro por cima, em vez de ser desenhado de
+    novo a cada quadro: a placa so desenha o quadro e os botoes. Ao
+    confirmar, o 3D volta a andar dali mesmo (a nitidez automatica nao
+    conta esses quadros "de graca").
   * Menu do operador > "Nitidez do 3D": AUTOMATICA (padrao) ou fixa em
     100%, 90%, 80% ou 70% - para quem prefere nitidez maxima sempre.
   * O que mais pesa numa placa de video fraca e PINTAR PIXELS. Por isso a
@@ -665,6 +722,8 @@ PASTAS
   modelos/    mascotes, pinos e cenarios 3D (gerados pelas ferramentas)
   texturas/ ui/ fontes/ sons/ shaders/
   tools/      ferramentas de producao (NAO vao no APK):
-              modelos/ (modelador 3D), arte/ (artes 2D), sons/, testes/
+              modelos/ (modelador 3D), arte/ (artes 2D), sons/, testes/,
+              android/ (plugins StrikeCamera e StrikeSerial e o app
+              TesteAparelho, que diz se uma TV Box roda o jogo)
   marketing/  imagens e video para divulgacao
   docs/       documento do jogo

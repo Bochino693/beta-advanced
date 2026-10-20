@@ -115,6 +115,8 @@ var _qualidade_pendente := ""
 var _mouse_parado := 0.0
 ## menu do operador / configuração dos botões aberto por cima do jogo
 var _menu: Control = null
+## o 3D está parado atrás do modal de jogadores (_congelar_3d)
+var _parado_3d := false
 var _camada_menu: CanvasLayer
 var _antes_menu := {}
 var _medidor_antes := false
@@ -305,6 +307,9 @@ func _tela_mudou(_t: Vector2) -> void:
 	var lado := minf(menor, float(LADO_3D.get(_qualidade, 720))) * _fator
 	var k := lado / maxf(menor, 1.0)
 	vp.size = Vector2i(maxi(64, int(round(f.x * k))), maxi(64, int(round(f.y * k))))
+	if _parado_3d and _menu == null:
+		# 3D parado atrás do modal: a imagem do tamanho novo sai uma vez
+		vp.render_target_update_mode = SubViewport.UPDATE_ONCE
 	if hud:
 		hud.layout()
 		# imagem 3D menor que a tela, no PC: realce de bordas ao esticar
@@ -528,6 +533,7 @@ func _atracao() -> void:
 	hud.marca(false, true)
 	hud.tela_fim(false)
 	hud.jogadores(false)
+	_congelar_3d(false)
 	hud.selecao(false)
 	hud.etapa(0)
 	hud.inatividade(false)
@@ -592,6 +598,7 @@ func _escolher_jogadores() -> void:
 	hud.atracao(false)
 	hud.tela_fim(false)
 	hud.etapa(1)
+	_congelar_3d(true)
 	# a câmera pode ter sido ligada depois: procura de novo e já liga, para
 	# a imagem estar pronta quando chegar o "SORRIA!"
 	Fotos.preparar()
@@ -610,6 +617,7 @@ func _escolher_jogadores() -> void:
 
 func _confirmar_jogadores() -> void:
 	hud.jogadores(false)
+	_congelar_3d(false)
 	if _escolha_n == 2:
 		_comecar(["bob", "mia"])
 	else:
@@ -1247,10 +1255,11 @@ func _finalizar_jogada() -> void:
 		return
 	# a máquina de pinos: barra varre os caídos, a mesa recoloca / desce rack novo
 	_plano_maquina()
+	# (o alçapão só abre se esta bola derrubou algum pino)
 	if proximo == "bola":
-		maquina.reposicionar()
+		maquina.reposicionar(n > 0)
 	else:
-		maquina.rack_novo()
+		maquina.rack_novo(n > 0)
 	if not await _esperar(0.3, s, false):
 		return
 	while maquina.trabalhando:
@@ -1775,6 +1784,19 @@ func pode_configurar() -> bool:
 	return estado == E.ATRACAO or estado == E.ABERTURA
 
 
+## Modal por cima do jogo ("QUANTOS VÃO JOGAR?"): a imagem 3D de trás
+## fica parada (a última, com um véu escuro por cima) e não é desenhada de
+## novo — a TV Box só desenha o modal: abre liso, sem pesar. A câmera para
+## onde está (ao voltar, a imagem continua dali, sem pulo).
+func _congelar_3d(sim: bool) -> void:
+	if _menu != null:
+		return
+	_parado_3d = sim
+	vp.render_target_update_mode = SubViewport.UPDATE_DISABLED if sim else SubViewport.UPDATE_ALWAYS
+	if sim:
+		cam.congelar()
+
+
 ## O tempo do último quadro em segundos de verdade (sem a velocidade do
 ## jogo nem a câmera lenta): para as contagens que a criança vê na tela.
 func _delta_real() -> float:
@@ -1845,7 +1867,8 @@ func _medir_fps(_delta: float) -> void:
 	if estado in [E.ARREMESSO, E.ROLANDO, E.RESULTADO, E.REPLAY]:
 		return
 	var agora := Time.get_ticks_msec()
-	if _fps_t0 == 0 or estado == E.ABERTURA or estado == E.TESTE:
+	# com o 3D parado atrás do modal os quadros saem de graça: não contam
+	if _fps_t0 == 0 or estado == E.ABERTURA or estado == E.TESTE or _parado_3d:
 		_fps_t0 = agora
 		_fps_q = Engine.get_process_frames()
 		_q_lentos = 0

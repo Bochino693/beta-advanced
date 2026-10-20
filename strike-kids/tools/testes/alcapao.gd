@@ -56,6 +56,10 @@ func _ready() -> void:
 				var k := t.split(",")
 				return Vector3(float(k[0]), float(k[1]), float(k[2]))
 			cam.corte(v.call(c[0]), v.call(c[1]), float(c[2]), float(c[2]))
+	maquina.alcapao.connect(func(abrindo: bool): print("SINAL alcapao ", abrindo))
+	# --errou: a bola não derrubou nada (o alçapão NÃO pode abrir)
+	if OS.get_cmdline_user_args().has("--errou"):
+		return
 	# derruba todos: cada pino ganha um empurrão para trás e para o lado
 	pinos.soltar_todos()
 	var rnd := RandomNumberGenerator.new()
@@ -73,7 +77,7 @@ func _physics_process(delta: float) -> void:
 		_fase = 1
 		_t = 0.0
 		print("pinos caidos: ", 10 - pinos.em_pe().size(), "  no fosso: ", pinos.pinos.filter(func(p): return p.global_position.z < Mundo.Z_FIM_DECK).size())
-		maquina.rack_novo()
+		maquina.rack_novo(not OS.get_cmdline_user_args().has("--errou"))
 
 
 func _process(_d: float) -> void:

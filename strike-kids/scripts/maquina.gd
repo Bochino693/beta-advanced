@@ -215,17 +215,30 @@ func _ok(t: Tween, s: int) -> bool:
 
 
 ## Depois de uma bola que não fechou a rodada: guarda os pinos em pé,
-## varre os caídos e devolve os em pé no lugar.
-func reposicionar() -> void:
-	await _ciclo(true)
+## varre os caídos e devolve os em pé no lugar. derrubou: a bola derrubou
+## algum pino (numa jogada errada o alçapão não abre).
+func reposicionar(derrubou := true) -> void:
+	await _ciclo(true, derrubou)
 
 
 ## Rack novo (rodada nova): varre tudo e desce os 10 pinos.
-func rack_novo() -> void:
-	await _ciclo(false)
+func rack_novo(derrubou := true) -> void:
+	await _ciclo(false, derrubou)
 
 
-func _ciclo(manter: bool) -> void:
+## Pinos caídos lá no fosso (atrás da pista), que o alçapão faria cair.
+func _pinos_no_fosso(levados: Array) -> int:
+	var n := 0
+	for p in pinos.pinos:
+		if levados.has(p) or p.removido:
+			continue
+		var g := p.global_position
+		if g.z < Mundo.Z_FIM_DECK and g.z > Mundo.ALCAPAO_Z1 - 0.1 and absf(g.x) < Mundo.ALCAPAO_X + 0.05 and g.y < 0.0:
+			n += 1
+	return n
+
+
+func _ciclo(manter: bool, derrubou := true) -> void:
 	_seq += 1
 	var s := _seq
 	trabalhando = true
@@ -265,27 +278,35 @@ func _ciclo(manter: bool) -> void:
 	if not await _ok(_tw(barra, "position:z", Mundo.Z_FIM_DECK - 0.15, 0.7), s):
 		return
 	# 3b. o ALÇAPÃO: as portinhas abrem para baixo e os pinos do fosso caem
-	# (com a física) até o fundo do poço
-	alcapao.emit(true)
-	if not await _ok(_pausa(0.25), s):
-		return
-	som.emit("alcapao")
-	if not await _ok(_alcapao(true, 0.45), s):
-		return
-	if not await _ok(_pausa(0.85), s):
-		return
-	# a barra volta enquanto o alçapão fecha; os pinos lá embaixo saem do jogo
-	var fecha := _alcapao(false, 0.55)
-	if not await _ok(_tw(barra, "position:z", _z_barra, 0.55), s):
-		return
-	if fecha.is_valid() and fecha.is_running():
-		if not await _ok(fecha, s):
+	# (com a física) até o fundo do poço — só se a bola derrubou pinos e há
+	# pino caído no fosso (bola na canaleta / jogada errada: fica fechado)
+	if derrubou and _pinos_no_fosso(levados) > 0:
+		alcapao.emit(true)
+		if not await _ok(_pausa(0.25), s):
 			return
-	_fechar_portas()   # no lugar exato (sem acumular sobra de conta)
-	for p in pinos.pinos:
-		if not levados.has(p):
-			p.tirar()
-	alcapao.emit(false)
+		som.emit("alcapao")
+		if not await _ok(_alcapao(true, 0.45), s):
+			return
+		if not await _ok(_pausa(0.85), s):
+			return
+		# a barra volta enquanto o alçapão fecha; os pinos lá embaixo saem do jogo
+		var fecha := _alcapao(false, 0.55)
+		if not await _ok(_tw(barra, "position:z", _z_barra, 0.55), s):
+			return
+		if fecha.is_valid() and fecha.is_running():
+			if not await _ok(fecha, s):
+				return
+		_fechar_portas()   # no lugar exato (sem acumular sobra de conta)
+		for p in pinos.pinos:
+			if not levados.has(p):
+				p.tirar()
+		alcapao.emit(false)
+	else:
+		for p in pinos.pinos:
+			if not levados.has(p):
+				p.tirar()
+		if not await _ok(_tw(barra, "position:z", _z_barra, 0.5), s):
+			return
 	# 4. mesa devolve (ou traz os 10 novos)
 	if not manter:
 		mesa.position.y = Y_REPOUSO

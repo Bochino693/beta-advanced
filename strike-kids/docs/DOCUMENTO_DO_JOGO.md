@@ -120,7 +120,16 @@ acenar, andar, vitória (pulinhos), escolhido.
 placar, cartões, botões, faixas e avisos são placas com volume — frente em
 degradê com verniz, filete de luz, lateral mais escura (espessura),
 contorno azul-marinho e sombra no chão, como os objetos do cenário.
-Desenhadas pixel a pixel no shader: nítidas de 720p a 4K.
+Desenhadas pixel a pixel no shader: nítidas de 720p a 4K. **Leve na TV
+Box**: o que não muda de pixel para pixel (centros, metades, raios,
+alturas do degradê, do verniz e da sombra) vem pronto do
+`Painel3D._medidas()` em uniforms; o shader usa uma derivada só
+(`fwidth` de x — a placa nunca gira) e só calcula a sombra, o halo, a
+frente e o verniz onde eles aparecem. **Modal "QUANTOS VÃO JOGAR?"**: o 3D
+de trás fica parado (`Principal._congelar_3d`: `SubViewport.UPDATE_DISABLED`,
+a câmera para onde está com `CameraCine.congelar`) atrás de um véu
+azul-escuro; ao confirmar volta a andar dali mesmo, e a nitidez automática
+não conta esses quadros.
 
 **Marca Lazer & Sport**: só na imagem de inicialização e na **abertura**,
 e num **balãozinho** (uns 60 cm, logo sem fundo) que flutua ao lado da pista no cenário do
@@ -263,7 +272,13 @@ Depois de cada bola, como num boliche de verdade:
    no `toon_personagem`). As portinhas fecham junto com a volta da barra e
    a câmera volta para a mesa. O chão do alçapão fechado fica na mesma
    altura e com o mesmo atrito do resto do fosso: a física da jogada não
-   muda (a bola já foi recolhida antes de ele abrir).
+   muda (a bola já foi recolhida antes de ele abrir). **Só abre quando tem
+   o que derrubar**: `reposicionar(derrubou)` / `rack_novo(derrubou)`
+   recebem se a bola derrubou algum pino (`Principal`, `n > 0`) e a
+   máquina ainda confere se há pino caído dentro do fosso
+   (`_pinos_no_fosso`); bola na canaleta, jogada errada ou fosso vazio: a
+   barra varre e volta, o alçapão fica fechado e a câmera não corta para o
+   fosso (o corte vem do sinal `alcapao`).
 5. A mesa desce e devolve os pinos; na rodada nova ela desce com os
    **10 pinos novinhos**. Barra sobe e a pista está pronta.
 
@@ -300,7 +315,7 @@ Depois de cada bola, como num boliche de verdade:
 | --- | --- | --- |
 | Parque de Diversões | azul com nuvens, gramado listrado | arco-íris com lâmpadas, torres de circo (branco e vermelho), roda-gigante girando, carrossel, tendas, pirulitos azuis e amarelos, balões |
 | Viagem ao Espaço | noite estrelada com nebulosa, chão de lua com crateras | planeta com anel atrás dos pinos (gira no eixo do anel: o anel nunca fica de lado), dois foguetes em pé ao lado do gabinete, disco voador passeando por cima do arco e NA FRENTE do planeta (inclinando nas curvas, nunca atravessa nada), planetinhas, cristais, estrelas balançando, estrelas cadentes |
-| Fundo do Mar | azul-turquesa com raios de luz, areia com ondinhas | concha gigante, corais, algas balançando, cardumes de peixinhos, águas-vivas, tartarugas, bolhas subindo, baú |
+| Fundo do Mar | azul-turquesa com raios de luz, areia com ondinhas | navio pirata naufragado inteiro atrás dos pinos (casco de tábuas com faixa dourada e escotilhas, castelos de proa e de popa, três mastros com cesto da gávea, velas estufadas listradas e bandeira de caveira; os mastros aparecem por cima do arco — no lugar da concha gigante, que ficava cortada pela parede), corais, algas balançando, cardumes de peixinhos, águas-vivas, tartarugas, bolhas subindo, baú |
 | Selva dos Dinos | céu quente de aventura, selva verde | vulcão fumegando, dino pescoçudo espiando atrás dos pinos, pterossauros voando, palmeiras, ovos de dino, flores gigantes |
 
 **Canaleta e para-choques de cada cenário** (`shaders/canaleta.gdshader`,
@@ -369,8 +384,8 @@ soltos assim que terminam de carregar).
 
 **Cenário LEVE x COMPLETO** (`Ajustes.cenario()`, menu do operador
 "Cenário (fundo)"; padrão em `strike/video/cenario` no `project.godot`:
-"completo" nesta versão ALTA — GitHub `beta-advanced`, feita para a TV Box
-TX9 —, "leve" na versão do GitHub `beta`). O leve, feito
+"completo" nesta versão — GitHub `beta-advanced`, OpenGL ES 3 —; "leve" é a
+opção para a SmartPro; a edição OpenGL ES 2.0 (Godot 3.6) fica no `beta`). O leve, feito
 para a TV Box (Mali-G31), muda só o fundo:
 - chão: `terreno_leve.gdshader` — o mesmo desenho, mas cada florzinha/
   concha/poeira cabe na sua casinha (1 sorteio por pixel em vez de 9),
@@ -609,7 +624,17 @@ vértice.
   fecha o jogo). Linha "Aparelho" (`Operador.texto_aparelho`): modelo,
   Android, placa de vídeo, núcleos e memória — para saber qual TV Box é
   (a "TX9" sai com chips diferentes; o jogo precisa de OpenGL ES 3:
-  Mali-T720/T820, Mali-G31/G52 sim; Mali-400/450 não).
+  Mali-T720/T820, Mali-G31/G52 sim; Mali-400/450 não — a TX9 comum de
+  2 GB/16 GB vem com S905X/Mali-450 ou RK3229/Mali-400 e não abre: o
+  Godot 4 não tem modo OpenGL ES 2).
+- **App "Teste do Aparelho"** (`tools/android/TesteAparelho`, Java puro
+  sem Godot, Android 4.1+, montado pelo `construir.sh` com javac + dx +
+  apktool + uber-apk-signer, sem Gradle): abre um contexto OpenGL ES 2 e
+  um ES 3 fora da tela e mostra fabricante/modelo/versão de cada um, o
+  chip (`Build.SOC_*`, `ro.board.platform`, `/proc/cpuinfo`), Android,
+  ABIs (32/64 bits), memória de verdade, armazenamento, tela, USB host e
+  câmeras, com o veredito RODA / NÃO RODA em cima; grava
+  `Android/data/com.lazersport.testeaparelho/files/aparelho.txt`.
   Teste dos sensores (ao vivo, com contagem),
   calibrar sensores, teste da porta (com a confirmação do Arduino), teste
   da câmera; sem o Arduino, mostram o relatório (USB, chip, permissão).

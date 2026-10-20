@@ -6,7 +6,7 @@ extends Node3D
 ## aplicado por Mundo.aplicar_tema) e um grupo de decoração que se mexe:
 ##   parque — Parque de Diversões: roda-gigante, carrossel, tendas de circo, balões
 ##   espaco — Viagem ao Espaço: planeta com anel, foguetes, disco voador
-##   mar    — Fundo do Mar: concha gigante, corais, algas, peixinhos, bolhas
+##   mar    — Fundo do Mar: navio pirata naufragado, corais, algas, peixinhos, bolhas
 ##   dinos  — Selva dos Dinos: vulcão, dino pescoçudo, palmeiras, pterossauros
 
 ## a Selva dos Dinos é sempre a PRIMEIRA fase (e o começo da atração);
@@ -432,12 +432,19 @@ func _mar() -> void:
 	var T := "mar"
 	var rnd := RandomNumberGenerator.new()
 	rnd.seed = 505
-	# concha gigante atrás dos pinos e corais no lugar das torres
-	_obj(T, "concha", Vector3(0, -0.05, Mundo.Z_FUNDO - 0.45), 0.0, 2.9, 0.0)
+	# NAVIO PIRATA naufragado, inteiro, pousado na areia atrás do gabinete:
+	# os mastros, as velas e a bandeira de caveira aparecem por cima do arco
+	# (ali ficava uma concha gigante que furava a cortina do fundo dos pinos)
+	var nx := 0.4
+	var nz := Mundo.Z_FUNDO - 6.5
+	var navio := _obj(T, "navio", Vector3(nx, _chao(nx, nz) - 0.06, nz), deg_to_rad(38.0), 1.3, 0.004)
+	navio.rotation.z = 0.05   # adernado de leve, de quem afundou
+	var ocupado: Array[Vector2] = [Vector2(nx, nz), Vector2(nx + 3.2, nz + 4.1), Vector2(nx - 2.4, nz - 3.1)]
+	# corais no lugar das torres
 	_obj(T, "coral", Vector3(-2.75, -0.02, Mundo.Z_FUNDO + 0.4), deg_to_rad(25.0), 2.1, 0.004)
 	_obj(T, "coral_roxo", Vector3(2.75, -0.02, Mundo.Z_FUNDO + 0.4), deg_to_rad(-25.0), 2.3, 0.004)
 	_espalhar(T, ["coral", "coral_roxo", "alga", "alga", "estrela_mar", "concha", "pedra", "coral"], _q(44), 31,
-		{"coral": 1.5, "coral_roxo": 1.5, "alga": 1.3, "estrela_mar": 1.6, "concha": 0.7, "pedra": 1.2})
+		{"coral": 1.5, "coral_roxo": 1.5, "alga": 1.3, "estrela_mar": 1.6, "concha": 0.7, "pedra": 1.2}, ocupado)
 	_destaques(T, [["coral", 0.8, 0.004], ["alga", 0.8, 0.0], ["estrela_mar", 1.0, 0.004], ["bau", 0.9, 0.004],
 		["coral_roxo", 0.9], ["alga", 0.9], ["concha", 0.5], ["estrela_mar", 1.0]])
 	# algas balançando na correnteza (as dos destaques e mais algumas)

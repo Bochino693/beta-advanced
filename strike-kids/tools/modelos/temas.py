@@ -10,7 +10,7 @@ alegres (turquesa, azul, amarelo, laranja, verde-limão, vermelho, coral).
   * ESPAÇO ............. planeta_anel, foguete, ovni, planeta, cristal,
                           pedra_lua, estrela_3d
   * FUNDO DO MAR ....... coral, coral_roxo, alga, concha, estrela_mar, peixe,
-                          agua_viva, bau, tartaruga
+                          agua_viva, bau, tartaruga, navio
   * SELVA DOS DINOS .... palmeira, samambaia, vulcao, ovo_dino, dino, ptero,
                           pedra, flor_gigante
   * PARQUE ............. roda_base, roda, cabine, tenda, carrossel
@@ -1087,6 +1087,84 @@ def bau():
     return juntar([m, mf])
 
 
+def navio():
+    """Navio pirata naufragado, INTEIRO (fica no fundo do mar atrás dos pinos,
+    com os mastros e as velas aparecendo por cima do arco): casco gordinho
+    de tábuas com faixa dourada e escotilhas, castelos de proa e de popa,
+    três mastros com cesto da gávea, velas estufadas listradas e a
+    bandeira de caveira. Proa para +Z, base em y = 0."""
+    pal = Paleta(madeira=hex_cor("#B8743F"), tabua=hex_cor("#9A5B2C"), conves=hex_cor("#E2B279"),
+                 ouro=hex_cor("#FFC93B"), vidro=hex_cor("#2B3A6B"), mastro=hex_cor("#7A4A2A"))
+    # casco: a metade de baixo de um ovo comprido (o convés é o corte)
+    casco = Intersecao(Elipsoide((0, 1.0, 0), (1.0, 1.15, 3.0), pal.madeira), SemiEspaco((0, 1.55, 0), (0, 1, 0)), 0.06)
+    popa = CaixaRedonda((0, 1.7, -2.05), (0.82, 0.5, 0.78), 0.16, pal.madeira)
+    proa = CaixaRedonda((0, 1.62, 2.05), (0.62, 0.34, 0.55), 0.14, pal.madeira)
+    gurupes = Capsula((0, 1.85, 2.4), (0, 2.45, 4.05), 0.07, pal.mastro)
+    corpo = unir(casco.solda(popa, 0.12).solda(proa, 0.1), gurupes)
+    # base enterrada uns centímetros (está pousado na areia)
+    corpo = Intersecao(corpo, SemiEspaco((0, -0.02, 0), (0, -1, 0)), 0.04)
+    mastros = []
+    for z, y0, y1, r in ((0.3, 1.5, 6.05, 0.095), (1.85, 1.5, 4.95, 0.08), (-1.95, 2.15, 4.75, 0.075)):
+        mastros.append(Capsula((0, y0, z), (0, y1, z), r, pal.mastro))
+        # vergas (as varas das velas)
+        for yv, meia in ((y1 - 0.55, 0.95 if z == 0.3 else 0.78), (y0 + (y1 - y0) * 0.38, 1.05 if z == 0.3 else 0.86)):
+            mastros.append(Capsula((-meia, yv, z + 0.1), (meia, yv, z + 0.1), 0.05, pal.mastro))
+    cesto = CilindroRedondo((0, 5.62, 0.3), 0.3, 0.12, 0.04, pal.mastro).menos(
+        CilindroRedondo((0, 5.72, 0.3), 0.2, 0.2, 0.0, pal.mastro))
+    forma = unir(corpo, *mastros, cesto)
+
+    def casco_lado(P):
+        return (P[:, 1] < 1.5) & (np.abs(P[:, 0]) > 0.15)
+
+    def tabuas(P):
+        return casco_lado(P) & (np.floor(P[:, 1] / 0.21) % 2 == 1) & (P[:, 1] < 1.12)
+
+    def faixa(P):
+        return (np.abs(P[:, 1] - 1.24) < 0.065) & (np.abs(P[:, 0]) > 0.3)
+
+    def conves(P):
+        # o piso do convés (por dentro da borda do casco)
+        dentro = np.abs(P[:, 0]) < 0.9 * np.sqrt(np.clip(1 - (P[:, 2] / 3.0) ** 2, 0, 1)) - 0.08
+        return (P[:, 1] > 1.52) & (P[:, 1] < 1.62) & dentro & (np.abs(P[:, 2]) < 1.35)
+
+    def escotilha(P, borda):
+        r = np.full(len(P), 9.0)
+        for z in (-0.95, 0.0, 0.95):
+            r = np.minimum(r, np.hypot(P[:, 1] - 0.92, P[:, 2] - z))
+        lado = np.abs(P[:, 0]) > 0.55
+        return lado & ((r < 0.14) if not borda else ((r >= 0.14) & (r < 0.19)))
+
+    pint = [Pintura(tabuas, pal.tabua), Pintura(faixa, pal.ouro), Pintura(conves, pal.conves),
+            Pintura(lambda P: escotilha(P, True), pal.ouro), Pintura(lambda P: escotilha(P, False), pal.vidro)]
+    m = malha("navio", forma, 0.036, pal, pint, ((-1.6, -0.3, -3.6), (1.6, 6.4, 4.4)), chao=-0.02)
+    # VELAS estufadas (malha fina à parte: o pano é fino) e a bandeira
+    pv = Paleta(pano=hex_cor("#FFF4DD"), listra=hex_cor("#E53935"), preto=hex_cor("#262230"), osso=hex_cor("#FFFFFF"))
+    velas = []
+    for z, y0, y1, meia in ((0.3, 3.32, 5.42, 0.93), (1.85, 2.92, 4.32, 0.76), (-1.95, 3.18, 4.13, 0.74)):
+        R = 2.6
+        zc = z + 0.17 - R
+        pano = CilindroRedondo((0, (y0 + y1) / 2, zc), R + 0.04, (y1 - y0) / 2 + 0.2, 0.0, pv.pano).menos(
+            CilindroRedondo((0, (y0 + y1) / 2, zc), R - 0.04, (y1 - y0) / 2 + 0.4, 0.0, pv.pano))
+        limite = CaixaRedonda((0, (y0 + y1) / 2, z + 0.2), (meia, (y1 - y0) / 2, 0.6), 0.03, pv.pano)
+        velas.append(Intersecao(pano, limite, 0.01))
+    bandeira = CaixaRedonda((0, 6.08, 0.3 - 0.36), (0.032, 0.24, 0.34), 0.016, pv.preto)
+    forma_v = unir(*velas, bandeira)
+
+    def listras(P):
+        return (P[:, 1] < 5.6) & (np.floor((P[:, 1] - 3.32) / 0.3) % 2 == 1)
+
+    def caveira(P):
+        y, z = P[:, 1] - 6.12, P[:, 2] - (0.3 - 0.36)
+        cabeca = np.hypot(y * 1.1, z) < 0.085
+        olhos = (np.hypot(y - 0.01, z - 0.035) < 0.022) | (np.hypot(y - 0.01, z + 0.035) < 0.022)
+        ossos = ((np.abs((y + 0.1) - 0.55 * z) < 0.016) | (np.abs((y + 0.1) + 0.55 * z) < 0.016)) & (np.abs(z) < 0.15)
+        return (P[:, 1] > 5.8) & ((cabeca & ~olhos) | ossos)
+
+    pint_v = [Pintura(listras, pv.listra), Pintura(caveira, pv.osso)]
+    mv = malha("navio/velas", forma_v, 0.026, pv, pint_v, ((-1.2, 2.6, -2.6), (1.2, 6.5, 2.4)))
+    return juntar([m, mv])
+
+
 def tartaruga():
     pal = Paleta(casco=hex_cor("#3FB97A"), linha=hex_cor("#2A8A5A"), pele=hex_cor("#9BE15D"),
                  barriga=hex_cor("#FFF1B8"), centro=hex_cor("#5ED16A"))
@@ -1623,7 +1701,7 @@ OBJETOS = {
     "cristal": cristal, "pedra_lua": pedra_lua, "estrela_3d": estrela_3d,
     # fundo do mar
     "coral": coral, "coral_roxo": coral_roxo, "alga": alga, "concha": concha, "estrela_mar": estrela_mar,
-    "peixe": peixe, "agua_viva": agua_viva, "bau": bau, "tartaruga": tartaruga,
+    "peixe": peixe, "agua_viva": agua_viva, "bau": bau, "tartaruga": tartaruga, "navio": navio,
     # selva dos dinos
     "palmeira": palmeira, "samambaia": samambaia, "vulcao": vulcao, "ovo_dino": ovo_dino,
     "dino": dino, "ptero": ptero, "pedra": pedra, "flor_gigante": flor_gigante,

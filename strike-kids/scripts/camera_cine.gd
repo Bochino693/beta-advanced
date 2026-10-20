@@ -172,6 +172,15 @@ func soco(graus: float) -> void:
 	_soco = graus
 
 
+## Fica onde está (sem órbita, trilho nem perseguição): a imagem não muda.
+func congelar() -> void:
+	_parar_modos()
+	_pos_dest = _pos
+	_alvo_dest = _alvo
+	_fov_v_dest = _fov_v
+	_fov_h_dest = _fov_h
+
+
 func _parar_modos() -> void:
 	_seguir = null
 	_orbita = false

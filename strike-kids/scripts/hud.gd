@@ -62,6 +62,7 @@ var _recorde_placa: Painel3D
 var _creditos: Label
 # quantos vão jogar
 var _jog: Control
+var _jog_veu: ColorRect
 var _jog_painel: Painel3D
 var _jog_titulo: Label
 var _jog_cartoes: Array[Painel3D] = []
@@ -925,6 +926,12 @@ func _montar_jogadores() -> void:
 	_jog.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_jog.visible = false
 	add_child(_jog)
+	# véu escuro por cima do 3D (que fica parado enquanto o modal está
+	# aberto: principal.gd, _congelar_3d)
+	_jog_veu = ColorRect.new()
+	_jog_veu.color = Color(0.02, 0.05, 0.14, 0.42)
+	_jog_veu.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_jog.add_child(_jog_veu)
 	_jog_painel = Painel3D.new(AZUL, 50, 18, 8)
 	_jog.add_child(_jog_painel)
 	_jog_titulo = rotulo("QUANTOS VÃO JOGAR?", 70, CREME, 16, MARINHO, fonte_titulo)
@@ -1001,6 +1008,8 @@ func jogadores(ligado: bool, n := 1, fracao := 0.0, segundos := 0) -> void:
 
 
 func _layout_jogadores(T: Vector2) -> void:
+	_jog_veu.position = Vector2.ZERO
+	_jog_veu.size = T
 	var mw: float = minf(T.x * 0.92, 980 * u)
 	var mh := 830 * u
 	_jog_painel.size = Vector2(mw, mh)
