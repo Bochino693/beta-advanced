@@ -4,7 +4,7 @@ shader_type sky;
 // dois extras opcionais: ESTRELAS + nebulosa (espaço) e RAIOS de luz
 // vindos de cima (fundo do mar). Sem TIME e sem texturas: barato.
 // Contas baratas para placa fraca: sorteio sem seno, potências feitas com
-// multiplicações e o disco do sol com um degrau suave (em vez de pow 400).
+// multiplicações; o disco do sol é o rostinho (astro.gdshader), aqui só o brilho.
 
 uniform vec3 cor_topo : source_color = vec3(0.20, 0.52, 1.0);
 uniform vec3 cor_meio : source_color = vec3(0.45, 0.75, 1.0);
@@ -70,6 +70,8 @@ void sky() {
 	float s2 = sol * sol;
 	float s4 = s2 * s2;
 	float s8 = s4 * s4;
-	c += cor_sol * (smoothstep(0.9992, 0.9997, sol) * 2.0 + s8 * s4 * 0.25) * forca_sol;
+	// só o BRILHO em volta: o disco do sol (e da lua) é o rostinho do
+	// astro.gdshader, desenhado sempre exatamente nesta direção
+	c += cor_sol * (s8 * s4 * 0.25) * forca_sol;
 	COLOR = c;
 }

@@ -83,6 +83,8 @@ func _medir_gpu(sim: bool) -> void:
 	if sim == _medindo_gpu:
 		return
 	_medindo_gpu = sim
+	if not sim and bool(principal.get("_mede_placa")):
+		return   # no PC o regulador de qualidade do jogo continua usando a medida
 	var vp: SubViewport = principal.get("vp")
 	if vp:
 		RenderingServer.viewport_set_measure_render_time(vp.get_viewport_rid(), sim)

@@ -51,7 +51,10 @@ meio-direita, direita) vira a jogada na tela, em 3D:
     troca acontece escondida no clarao da fase nova, sem travar.
   * SOL E LUA COM ROSTINHO no ceu (sol no Parque, na Selva e no Mar; lua
     no Espaco): sorrindo e piscando, e os raios do sol girando devagar.
-    Custo quase zero (um quadradinho desenhado de uma vez).
+    Ficam "no infinito", como o proprio ceu: por mais que a camera ande
+    (pinos, cacapa, passeios), o rostinho fica sempre no mesmo lugar do
+    ceu e atras de todo o cenario - o ceu so desenha o brilho em volta
+    dele (nada de "dois sois"). Custo quase zero.
   * FISICA SEM SOBREPOSICAO: nada atravessa nada. A canaleta colide com a
     propria meia-cana do desenho (a bola corre dentro da calha, apoiada
     nas bordas, e os pinos param la dentro); as divisorias e as paredes do
@@ -482,12 +485,26 @@ RODANDO LISO (PC e TV Box):
     1080 x 1920 (o mesmo tamanho da tela) com ANTISSERRILHADO 4x - na
     placa Mali da TV Box o antisserrilhado e feito dentro da propria placa
     e sai quase de graca. No PC, no tamanho da tela (ate 4K).
-  * NITIDEZ AUTOMATICA: a cada 2 s o jogo mede os quadros por segundo. Se
-    a placa nao segurar (~52 ou menos), a imagem 3D diminui 10% (no
-    maximo ate 70%) e e esticada ate a tela; quando sobra folga, ela VOLTA
-    A CRESCER sozinha ate 100%. O ponto bom fica guardado para quando a
-    maquina ligar de novo. (Antes ela so diminuia e nunca voltava - era o
-    que deixava a imagem borrada.)
+  * NITIDEZ AUTOMATICA: a cada 2 s o jogo mede os quadros por segundo E
+    as travadinhas (quadros que passaram do tempo - a media pode estar boa
+    e a tela ainda engasgar). Se a placa nao segurar (abaixo de ~54 quadros
+    ou mais de 4% de quadros atrasados, duas vezes seguidas), ela alivia
+    nesta ordem: 1) na qualidade AUTOMATICA ALTA (PC), passa para a MEDIA
+    (sai o brilho/glow e o 3D fica em ate 1080 - o que mais pesa e quase
+    nao se nota); 2) a imagem 3D diminui 10% (ate 70%); 3) ainda muito
+    lento: qualidade BAIXA. Quando sobra folga, a imagem VOLTA A CRESCER
+    sozinha ate 100%. No PC a propria placa de video diz quanto tempo levou
+    em cada quadro: se quem nao da conta e o processador, a imagem nao e
+    mexida. A qualidade e o tamanho escolhidos ficam guardados para quando
+    a maquina ligar de novo.
+  * PRIMEIRA VEZ NO PC: placa de video integrada (Intel, ou a "Radeon
+    Graphics" do processador AMD) ja comeca na qualidade MEDIA; placa
+    dedicada (NVIDIA / AMD Radeon RX) comeca na ALTA. O TESTE DE
+    DESEMPENHO (menu do operador) mede de verdade e escolhe.
+  * CAMERA SEM PARADINHAS: os passeios de camera (fase nova, chegada na
+    tela inicial) seguem uma curva suave que passa pelos pontos do caminho
+    sem frear - antes a camera parava um instante em cada ponto, o que
+    parecia uma travada.
   * Menu do operador > "Nitidez do 3D": AUTOMATICA (padrao) ou fixa em
     100%, 90%, 80% ou 70% - para quem prefere nitidez maxima sempre.
   * O que mais pesa numa placa de video fraca e PINTAR PIXELS. Por isso a

@@ -33,6 +33,10 @@ var _balanco_base := 0.0
 var _orbita_t := 0.0
 var _trilho := []          # [[pos, alvo, tempo]...] (movimento de câmera em trilho)
 var _trilho_t := 0.0
+# o trilho como curva suave: instantes de cada ponto e as velocidades neles
+var _trilho_tempos := PackedFloat32Array()
+var _trilho_vp: Array[Vector3] = []
+var _trilho_va: Array[Vector3] = []
 
 
 func _ready() -> void:
@@ -94,6 +98,11 @@ func orbitar(centro: Vector3, raio: float, altura: float, vel := 0.15, fov_v := 
 
 
 ## Movimento em trilho: lista de [pos, alvo, segundos] (replay, abertura).
+## A câmera passa pelos pontos numa CURVA SUAVE (cúbica monótona, como as
+## animações dos bichinhos): sai parada, passa pelos pontos do meio SEM
+## FREAR (a velocidade continua) e chega parada — antes cada trecho
+## acelerava e freava sozinho e a câmera dava uma paradinha em cada ponto,
+## o que parecia uma travada.
 func trilho(pontos: Array, fov_v := 45.0, fov_h := 34.0) -> void:
 	_parar_modos()
 	_trilho = pontos
@@ -102,6 +111,55 @@ func trilho(pontos: Array, fov_v := 45.0, fov_h := 34.0) -> void:
 	_fov_h_dest = fov_h
 	_fov_v = fov_v
 	_fov_h = fov_h
+	_trilho_tempos = PackedFloat32Array([0.0])
+	for i in range(1, pontos.size()):
+		_trilho_tempos.append(_trilho_tempos[i - 1] + maxf(float(pontos[i][2]), 0.001))
+	_trilho_vp = _velocidades(pontos, 0)
+	_trilho_va = _velocidades(pontos, 1)
+
+
+## Velocidade em cada ponto (por eixo, Fritsch-Carlson): zero nas pontas e
+## onde o movimento daquele eixo muda de sentido — a curva nunca passa do
+## ponto (não "sobra" para fora do caminho).
+func _velocidades(pontos: Array, k: int) -> Array[Vector3]:
+	var n := pontos.size()
+	var v: Array[Vector3] = []
+	v.resize(n)
+	for i in n:
+		v[i] = Vector3.ZERO
+	for i in range(1, n - 1):
+		var h0 := _trilho_tempos[i] - _trilho_tempos[i - 1]
+		var h1 := _trilho_tempos[i + 1] - _trilho_tempos[i]
+		var d0: Vector3 = ((pontos[i][k] as Vector3) - (pontos[i - 1][k] as Vector3)) / h0
+		var d1: Vector3 = ((pontos[i + 1][k] as Vector3) - (pontos[i][k] as Vector3)) / h1
+		var m := Vector3.ZERO
+		for e in 3:
+			if d0[e] * d1[e] > 0.0:
+				var w1 := 2.0 * h1 + h0
+				var w2 := h1 + 2.0 * h0
+				m[e] = (w1 + w2) / (w1 / d0[e] + w2 / d1[e])
+		v[i] = m
+	return v
+
+
+## Onde a câmera está no trilho no instante t: [posição, alvo].
+func _no_trilho(t: float) -> Array:
+	var n := _trilho.size()
+	if n == 1 or t >= _trilho_tempos[n - 1]:
+		return [_trilho[-1][0], _trilho[-1][1]]
+	var i := 0
+	while i < n - 2 and t > _trilho_tempos[i + 1]:
+		i += 1
+	var h := _trilho_tempos[i + 1] - _trilho_tempos[i]
+	var u := clampf((t - _trilho_tempos[i]) / h, 0.0, 1.0)
+	var u2 := u * u
+	var u3 := u2 * u
+	var a := 2.0 * u3 - 3.0 * u2 + 1.0
+	var b := (u3 - 2.0 * u2 + u) * h
+	var c := -2.0 * u3 + 3.0 * u2
+	var d := (u3 - u2) * h
+	return [(_trilho[i][0] as Vector3) * a + _trilho_vp[i] * b + (_trilho[i + 1][0] as Vector3) * c + _trilho_vp[i + 1] * d,
+		(_trilho[i][1] as Vector3) * a + _trilho_va[i] * b + (_trilho[i + 1][1] as Vector3) * c + _trilho_va[i + 1] * d]
 
 
 func tremer(forca: float, dur := 0.35) -> void:
@@ -127,19 +185,9 @@ func _process(delta: float) -> void:
 func _aplicar(delta: float) -> void:
 	if not _trilho.is_empty():
 		_trilho_t += delta
-		var acc := 0.0
-		var i := 0
-		while i < _trilho.size() - 1 and _trilho_t > acc + float(_trilho[i + 1][2]):
-			acc += float(_trilho[i + 1][2])
-			i += 1
-		if i >= _trilho.size() - 1:
-			_pos = _trilho[-1][0]
-			_alvo = _trilho[-1][1]
-		else:
-			var u: float = clamp((_trilho_t - acc) / max(float(_trilho[i + 1][2]), 0.001), 0.0, 1.0)
-			u = u * u * (3.0 - 2.0 * u)
-			_pos = (_trilho[i][0] as Vector3).lerp(_trilho[i + 1][0], u)
-			_alvo = (_trilho[i][1] as Vector3).lerp(_trilho[i + 1][1], u)
+		var no := _no_trilho(_trilho_t)
+		_pos = no[0]
+		_alvo = no[1]
 		_pos_dest = _pos
 		_alvo_dest = _alvo
 	elif _orbita:

@@ -63,6 +63,12 @@ func _medir(nome: String, f: Callable) -> void:
 
 
 func _rodar() -> void:
+	# a nitidez automática fica parada (100% fixa, só na memória — nada é
+	# gravado): aqui se mede o menu, e não as trocas de resolução que ela
+	# faria no clarão de fechar (nesta máquina sem placa de vídeo ela sempre
+	# acharia o jogo lento)
+	var nitidez_antes = Ajustes.valor("video", "nitidez")
+	Ajustes._cfg.set_value("video", "nitidez", "100%")
 	reparent(get_tree().root)
 	get_tree().current_scene = null
 	get_tree().change_scene_to_file("res://cenas/principal.tscn")
@@ -96,6 +102,8 @@ func _rodar() -> void:
 		checar(extra_abrir < 25.0 and extra_fechar < 25.0, "vez %d: abre e fecha sem travar (extra %.0f / %.0f ms)" % [vez + 1, extra_abrir, extra_fechar])
 		await esperar(2.0)
 	await _controle_remoto(p)
+	# devolve a nitidez de antes (gravando: o teste do controle grava os ajustes)
+	Ajustes.definir("video", "nitidez", nitidez_antes)
 	print("MENU_TESTE %s" % ("OK" if falhas == 0 else "FALHOU"))
 	get_tree().quit(0 if falhas == 0 else 1)
 

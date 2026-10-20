@@ -12,7 +12,8 @@ extends Node
 ## parecem caras aqui porque o llvmpipe as descomprime no processador;
 ## numa placa de vídeo de verdade (inclusive a Mali-G31) isso é de graça.
 ## Ex.: "sem_logo" tira ~60 ms aqui e quase nada na TV Box.
-## Configs extras: sem_arco, sem_logo, sem_lampadas, sem_tiras;
+## Configs extras: sem_arco, sem_logo, sem_lampadas, sem_tiras, sem_neblina,
+## sem_brilho (glow do PC), msaa_0;
 ## --planos=cacapa,espera mede só esses planos.
 
 const PLANOS := {
@@ -179,6 +180,8 @@ func _aplicar(cfg: String, ligar: bool) -> void:
 				var trocas: Dictionary = get_meta("toon")
 				for m in trocas:
 					(m as ShaderMaterial).shader = trocas[m]
+		"sem_brilho":
+			mundo.ambiente.glow_enabled = not ligar and principal.get("_qualidade") == "alta"
 		"msaa_0":
 			if ligar:
 				set_meta("msaa", vp.msaa_3d)

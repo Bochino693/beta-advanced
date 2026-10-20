@@ -212,24 +212,40 @@ func _cor_do_chao(c: Color) -> Color:
 
 # ================================================================ sol e lua
 ## SOL E LUA COM ROSTINHO no céu: sol no Parque, nos Dinos e no Mar (visto
-## de dentro d'água, mais azulado) e a lua no Espaço. Um quadradinho bem
-## longe, sempre de frente para a câmera; os raios giram e o rosto pisca no
-## próprio shader (astro.gdshader). Só a imagem do cenário atual fica na
-## memória. O brilho do sol do céu vai para trás dele.
-## [imagem, posição, tamanho (m), tinta]
+## de dentro d'água, mais azulado) e a lua no Espaço. Um quadradinho sempre
+## de frente para a câmera, desenhado NA DIREÇÃO do sol do céu e sempre à
+## mesma distância da câmera (astro.gdshader) — como o céu, ele fica "no
+## infinito": por mais que a câmera passeie (pinos, caçapa, trilhos), o
+## rostinho fica exatamente onde o céu desenha o brilho do sol, e atrás de
+## todo o cenário. Os raios giram e o rosto pisca no próprio shader.
+## As 3 imagens (pequenas) ficam carregadas desde o começo: trocar de
+## cenário não lê nada do disco.
+## [imagem, onde fica visto da área de jogo, tamanho (m) a ~67 m, tinta]
 const ASTROS := {
 	"parque": ["sol", Vector3(9.8, 25.2, -59.4), 8.5, Color(1, 1, 1, 1)],
 	"dinos": ["sol", Vector3(9.8, 25.2, -59.4), 8.5, Color(1, 1, 1, 1)],
 	"mar": ["sol", Vector3(9.8, 25.2, -59.4), 8.0, Color(0.86, 1.0, 1.0, 0.82)],
 	"espaco": ["lua", Vector3(-1.1, 26.3, -59.7), 7.2, Color(1, 1, 1, 1)],
 }
+## de onde as posições acima foram escolhidas (a área de jogo)
+const ASTRO_REFERENCIA := Vector3(0.0, 1.2, 2.4)
+## distância do rostinho até a câmera: atrás de tudo do cenário e antes do
+## fim da visão da câmera (160 m)
+const ASTRO_DISTANCIA := 140.0
 var _astro: MeshInstance3D
 var _mat_astro: ShaderMaterial
+var _img_astro := {}
 
 
 func _astro_no_ceu() -> void:
+	for n in ["sol", "lua", "sol_raios"]:
+		_img_astro[n] = load("res://ui/ceu/%s.png" % n)
 	_mat_astro = ShaderMaterial.new()
 	_mat_astro.shader = load("res://shaders/astro.gdshader")
+	_mat_astro.set_shader_parameter("distancia", ASTRO_DISTANCIA)
+	# o primeiro dos transparentes: o que estiver na frente (bolhas,
+	# partículas) é desenhado por cima dele
+	_mat_astro.render_priority = Material.RENDER_PRIORITY_MIN
 	_astro = MeshInstance3D.new()
 	_astro.name = "astro"
 	var q := QuadMesh.new()
@@ -237,22 +253,26 @@ func _astro_no_ceu() -> void:
 	_astro.mesh = q
 	_astro.material_override = _mat_astro
 	_astro.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
-	# o quadrado gira para a câmera no shader: folga para não sumir da tela
-	_astro.extra_cull_margin = 8.0
+	# o shader coloca o quadrado longe, na frente da câmera: a caixa de
+	# visibilidade cobre toda a visão (nunca some por engano)
+	_astro.custom_aabb = AABB(Vector3(-400, -400, -400), Vector3(800, 800, 800))
 	add_child(_astro)
 
 
 func _mostrar_astro(nome: String) -> void:
 	var a: Array = ASTROS.get(nome, ASTROS["parque"])
 	var sol: bool = a[0] == "sol"
-	_mat_astro.set_shader_parameter("rosto", load("res://ui/ceu/%s.png" % a[0]))
-	_mat_astro.set_shader_parameter("raios", load("res://ui/ceu/sol_raios.png") if sol else null)
+	var rel: Vector3 = (a[1] as Vector3) - ASTRO_REFERENCIA
+	var dir := rel.normalized()
+	_mat_astro.set_shader_parameter("rosto", _img_astro[a[0]])
+	_mat_astro.set_shader_parameter("raios", _img_astro["sol_raios"] if sol else null)
 	_mat_astro.set_shader_parameter("usa_raios", 1.0 if sol else 0.0)
 	_mat_astro.set_shader_parameter("tinta", a[3])
-	_astro.position = a[1]
-	_astro.scale = Vector3.ONE * float(a[2])
-	# o brilho do sol desenhado no céu fica atrás dele (de onde se joga)
-	mat_ceu.set_shader_parameter("dir_sol", ((a[1] as Vector3) - Vector3(0.0, 1.2, 2.4)).normalized())
+	_mat_astro.set_shader_parameter("direcao", dir)
+	# o mesmo tamanho na tela que teria a ~67 m, agora a ASTRO_DISTANCIA
+	_mat_astro.set_shader_parameter("tamanho", float(a[2]) * ASTRO_DISTANCIA / rel.length())
+	# o brilho do sol do céu fica bem atrás dele, de qualquer ponto de vista
+	mat_ceu.set_shader_parameter("dir_sol", dir)
 
 
 # ================================================================ ambiente

@@ -311,7 +311,14 @@ Parque, na Selva e no Mar (no Mar, mais clarinho, visto "de dentro da
 água"), lua no Espaço. Um quadradinho virado para a câmera, desenhado de
 uma vez: os raios giram e o rosto pisca no próprio shader (nada no
 processador por quadro). Rostinho simples e feliz (olhos grandes,
-bochechas, sorriso), sem nenhum traço que pareça bigode.
+bochechas, sorriso), sem nenhum traço que pareça bigode. Fica "no
+infinito", como o céu: o vertex shader o coloca na direção `dir_sol` (a
+mesma que o céu usa) a 140 m da câmera, onde quer que ela esteja — antes
+ele ficava num ponto fixo a ~60 m e, com a câmera andando, saía de cima do
+disco do sol desenhado pelo céu ("dois sóis"). O céu agora desenha só o
+brilho em volta; o disco é o rostinho. Atrás de todo o cenário (140 m),
+o primeiro dos transparentes (`render_priority` mínima) e com caixa de
+visibilidade grande (nunca some por engano).
 
 **Roupinhas das fases** (`tools/modelos/roupas.py`, `Personagem.trocar_roupa`):
 
@@ -387,11 +394,21 @@ vértice.
     bola e bichinhos;
   - imagem 3D **no tamanho da tela** (TV Box 1080 px com MSAA 4x — na Mali
     o MSAA é resolvido dentro da placa via `GL_EXT_multisampled_render_to_texture`;
-    PC até 4K) e **nitidez automática**: se cair de ~52 quadros por segundo
-    o 3D diminui 10% (até 70%) e, com folga, **volta a crescer** até 100%;
-    o ponto bom fica guardado (`video/fator`); o operador pode fixar em
-    100/90/80/70% ("Nitidez do 3D"); no PC, realce de bordas (tipo CAS) ao
-    esticar;
+    PC até 4K) e **nitidez automática** (`Principal._medir_fps`): a cada
+    2 s, quadros por segundo e **quadros atrasados** (mais de 1,5 quadro:
+    travadinha); ruim duas vezes (abaixo de 90% do alvo ou mais de 4%
+    atrasados) e com a placa de vídeo no limite — no PC medida pela própria
+    placa (`viewport_get_measured_render_time_gpu`), na TV Box pela conta do
+    processador —, alivia: qualidade automática ALTA → MÉDIA (sem glow, 3D
+    até 1080), depois o 3D 10% menor (até 70%), depois BAIXA; com folga,
+    **volta a crescer** até 100%; fator e qualidade escolhidos ficam
+    guardados (`video/fator`, `video/qualidade_auto`); no PC sem medida
+    ainda, placa integrada (Intel, AMD "Radeon Graphics") começa na MÉDIA
+    (`_qualidade_inicial_pc`); o operador pode fixar em 100/90/80/70%
+    ("Nitidez do 3D"); no PC, realce de bordas (tipo CAS) ao esticar;
+  - **câmera sem paradinhas**: os trilhos de câmera (`CameraCine.trilho`)
+    são uma cúbica monótona por eixo (Fritsch–Carlson, como as animações):
+    sai e chega parada, mas passa pelos pontos do meio sem frear;
   - superfícies grandes **sem luz por pixel** (pista, piso e arco do
     portal com a luz já pintada; marcações da pista com conta fixa por
     pixel); MSAA e brilho só no PC; cores convertidas por vértice no toon;

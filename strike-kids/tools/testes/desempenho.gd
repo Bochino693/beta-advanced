@@ -6,10 +6,11 @@ extends Node
 ## --engasgos: cada quadro acima de 30 ms sai dividido em física / jogo
 ## (processo) / desenho — numa janela pequena (--janela=72x128) o desenho
 ## fica barato e qualquer tranco aparece (busca de câmera, imagem carregada
-## na hora, shader preparado na hora...).
+## na hora, shader preparado na hora...). --engasgos=12 muda o limite (ms).
 
 var t := 0.0
 var principal: Node
+var limite_ms := 30.0
 
 
 func _ready() -> void:
@@ -19,7 +20,13 @@ func _ready() -> void:
 		# sem a pausa do modo econômico: o tempo do quadro vira o custo real
 		OS.low_processor_usage_mode = false
 		OS.low_processor_usage_mode_sleep_usec = 0
-	if OS.get_cmdline_user_args().has("--engasgos"):
+	var engasgos := false
+	for a in OS.get_cmdline_user_args():
+		if a == "--engasgos" or a.begins_with("--engasgos="):
+			engasgos = true
+			if "=" in a:
+				limite_ms = float(a.get_slice("=", 1))
+	if engasgos:
 		get_tree().physics_frame.connect(func():
 			if _e_fis < 0:
 				_e_fis = Time.get_ticks_usec()
@@ -41,7 +48,7 @@ var _e_passos := 0
 func _fim_do_quadro() -> void:
 	var fim := Time.get_ticks_usec()
 	var total := (fim - _e_ini) / 1000.0
-	if total > 30.0 and Engine.get_process_frames() > 30 and principal and "estado" in principal:
+	if total > limite_ms and Engine.get_process_frames() > 30 and principal and "estado" in principal:
 		print("ENGASGO %6.1f ms  fisica=%5.1f (%d passos) jogo=%6.1f desenho=%6.1f  estado=%s quadro=%d" % [total,
 			(_e_proc - _e_fis) / 1000.0 if _e_fis >= 0 else 0.0, _e_passos, (_e_pre - _e_proc) / 1000.0,
 			(fim - _e_pre) / 1000.0, principal.E.keys()[principal.estado], Engine.get_process_frames()])

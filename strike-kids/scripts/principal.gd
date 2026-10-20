@@ -95,6 +95,15 @@ var _fps_bons := 0
 var _teto := 1.0            # fator que já se mostrou pesado demais...
 var _teto_ate := 0          # ...até esta hora (ms): não tenta subir acima dele
 var _fator_salvar := false  # fator novo a gravar (na atração: gravar no meio do jogo trava)
+var _qualidade_salvar := false  # idem, a qualidade que o automático escolheu
+## RITMO DOS QUADROS (para achar travadinhas, não só a média): quadros que
+## passaram do tempo e, no PC, quanto a placa de vídeo levou para desenhar
+var _q_ultimo := 0
+var _q_lentos := 0
+var _gpu_ms := 0.0
+var _gpu_n := 0
+var _mede_placa := false
+var _alvo_qps := 60.0       # quadros por segundo da tela (lido a cada medida, não a cada quadro)
 ## troca de resolução (ou de qualidade) decidida, esperando um clarão de
 ## tela para acontecer: refazer as imagens da placa de vídeo dá um tranco,
 ## e escondido no clarão branco ninguém vê
@@ -159,12 +168,30 @@ func _qualidade_escolhida() -> String:
 	if OS.has_environment("STRIKE_QUALIDADE"):
 		q = OS.get_environment("STRIKE_QUALIDADE")
 	if q == "auto":
+		if _qualidade_salvar:
+			return _qualidade   # o automático acabou de escolher (grava na tela de espera)
 		var medida := str(Ajustes.valor("video", "qualidade_auto"))
 		if medida in ["alta", "media", "baixa"]:
 			q = medida
 		else:
-			q = "alta" if OS.get_name() != "Android" else "media"
+			q = _qualidade_inicial_pc() if OS.get_name() != "Android" else "media"
 	return q
+
+
+## Primeira vez no PC (antes de o jogo medir a máquina): placa de vídeo
+## integrada (Intel, AMD "Radeon Graphics" do processador) começa na MÉDIA
+## — sem o brilho (glow) e com o 3D até 1080 —, placa dedicada na ALTA. O
+## automático ajusta daí (e guarda o que escolheu).
+func _qualidade_inicial_pc() -> String:
+	var nome := RenderingServer.get_video_adapter_name().to_lower()
+	var marca := RenderingServer.get_video_adapter_vendor().to_lower()
+	if "intel" in marca or "intel" in nome:
+		return "media"
+	var amd := marca.begins_with("ati") or "amd" in marca or "advanced micro devices" in marca or "radeon" in nome
+	if amd and not " rx " in nome + " " and ("radeon(tm) graphics" in nome or "radeon graphics" in nome or
+			"vega 3" in nome or "vega 6" in nome or "vega 8" in nome or "vega 10" in nome or "vega 11" in nome):
+		return "media"
+	return "alta"
 
 
 ## NITIDEZ: automática (começa do último fator bom desta máquina) ou fixa.
@@ -475,6 +502,10 @@ func _teste_desempenho() -> void:
 
 func _atracao() -> void:
 	estado = E.ATRACAO
+	if _qualidade_salvar:
+		_qualidade_salvar = false
+		if str(Ajustes.valor("video", "qualidade")) == "auto":
+			Ajustes.definir("video", "qualidade_auto", _qualidade)
 	if _fator_salvar:
 		_fator_salvar = false
 		Ajustes.definir("video", "fator", snappedf(_fator, 0.01))
@@ -1734,16 +1765,40 @@ func _esperar(t: float, s: int, pulavel := true) -> bool:
 
 
 ## NITIDEZ x LISURA, sozinho: a cada 2 s mede os quadros por segundo de
-## verdade (relógio). Abaixo de ~88% do alvo duas vezes seguidas, a imagem
-## 3D diminui 10% (até 70%). Com folga (quadros no máximo por ~8 s), ela
-## VOLTA A CRESCER 5% — sem passar, por 90 s, de um tamanho que já se
-## mostrou pesado. Se quem não dá conta é o PROCESSADOR (não a placa de
-## vídeo), diminuir a imagem não ajuda: aí não mexe. O fator bom fica
-## guardado para a próxima vez que a máquina ligar. Só em último caso (já
-## em 70% e ainda muito lento), e na qualidade "auto", desce um nível.
+## verdade (relógio) E as travadinhas (quadros que passaram do tempo — a
+## média pode estar boa e a tela ainda engasgar). Ruim duas vezes seguidas
+## (abaixo de ~90% do alvo ou mais de 4% de quadros atrasados), a placa
+## alivia, nesta ordem:
+##   1) na qualidade automática ALTA (PC): passa para a MÉDIA — sai o brilho
+##      (glow) e o 3D fica em até 1080: o que mais pesa e quase não se nota;
+##   2) a imagem 3D diminui 10% (até 70%);
+##   3) ainda muito lento e na automática: qualidade BAIXA.
+## Com folga (~8 s no máximo), a imagem VOLTA A CRESCER 5% — sem passar,
+## por 90 s, de um tamanho que já se mostrou pesado. Se quem não dá conta é
+## o PROCESSADOR (não a placa de vídeo), diminuir a imagem não ajuda: aí
+## não mexe — no PC a placa diz quanto tempo levou para desenhar; na TV Box
+## (o Android não diz) vale a conta do processador. O fator e a qualidade
+## escolhidos ficam guardados para a próxima vez que a máquina ligar.
 func _medir_fps(_delta: float) -> void:
 	if not _adaptar:
 		return
+	var alvo := _alvo_qps
+	# cada quadro: atrasou? (1,5 vez o tempo de um quadro = pulou a vez)
+	var agora_us := Time.get_ticks_usec()
+	if _q_ultimo > 0 and float(agora_us - _q_ultimo) > 1500000.0 / alvo:
+		_q_lentos += 1
+	_q_ultimo = agora_us
+	if not _mede_placa and OS.get_name() != "Android":
+		# no PC (OpenGL) a placa de vídeo informa quanto levou em cada quadro
+		_mede_placa = true
+		RenderingServer.viewport_set_measure_render_time(vp.get_viewport_rid(), true)
+		RenderingServer.viewport_set_measure_render_time(get_viewport().get_viewport_rid(), true)
+	if _mede_placa:
+		var g := RenderingServer.viewport_get_measured_render_time_gpu(vp.get_viewport_rid()) + \
+			RenderingServer.viewport_get_measured_render_time_gpu(get_viewport().get_viewport_rid())
+		if g > 0.0:
+			_gpu_ms += g
+			_gpu_n += 1
 	# trocar o tamanho da imagem 3D refaz as imagens da placa de vídeo (um
 	# tranco): nunca no meio da jogada — a medida continua e a troca fica
 	# para a espera da próxima bola
@@ -1753,32 +1808,55 @@ func _medir_fps(_delta: float) -> void:
 	if _fps_t0 == 0 or estado == E.ABERTURA or estado == E.TESTE:
 		_fps_t0 = agora
 		_fps_q = Engine.get_process_frames()
+		_q_lentos = 0
+		_gpu_ms = 0.0
+		_gpu_n = 0
+		var hz := DisplayServer.screen_get_refresh_rate()
+		_alvo_qps = clampf(hz if hz > 0.0 else 60.0, 30.0, 60.0)
 		return
 	if agora - _fps_t0 < 2000:
 		return
-	var fps := float(Engine.get_process_frames() - _fps_q) * 1000.0 / float(agora - _fps_t0)
+	var quadros := maxi(Engine.get_process_frames() - _fps_q, 1)
+	var fps := float(quadros) * 1000.0 / float(agora - _fps_t0)
+	var atrasados := float(_q_lentos) / float(quadros)
+	var placa := _gpu_ms / float(_gpu_n) if _gpu_n > 0 else -1.0
 	_fps_t0 = agora
 	_fps_q = Engine.get_process_frames()
+	_q_lentos = 0
+	_gpu_ms = 0.0
+	_gpu_n = 0
 	var hz := DisplayServer.screen_get_refresh_rate()
-	var alvo := clampf(hz if hz > 0.0 else 60.0, 30.0, 60.0)
-	if fps < alvo * 0.88:
+	_alvo_qps = clampf(hz if hz > 0.0 else 60.0, 30.0, 60.0)
+	if _qualidade_pendente != "" or _fator_pendente > 0.0:
+		return   # já tem uma troca esperando o clarão: mede de novo depois dela
+	if fps < alvo * 0.9 or atrasados > 0.04:
 		_fps_bons = 0
 		_fps_ruins += 1
-		# processador no limite (jogo + física por quadro): a imagem não é o problema
-		var passos := float(Engine.physics_ticks_per_second) / maxf(fps, 1.0)
-		var cpu := (Performance.get_monitor(Performance.TIME_PROCESS) + Performance.get_monitor(Performance.TIME_PHYSICS_PROCESS) * passos) * 1000.0
-		if _fps_ruins < 2 or cpu > 800.0 / alvo:
+		var placa_no_limite: bool
+		if placa >= 0.0:
+			# a placa de vídeo usou mais de 70% do tempo do quadro
+			placa_no_limite = placa > 700.0 / alvo
+		else:
+			# TV Box: processador no limite (jogo + física por quadro) = a imagem não é o problema
+			var passos := float(Engine.physics_ticks_per_second) / maxf(fps, 1.0)
+			var cpu := (Performance.get_monitor(Performance.TIME_PROCESS) + Performance.get_monitor(Performance.TIME_PHYSICS_PROCESS) * passos) * 1000.0
+			placa_no_limite = cpu <= 800.0 / alvo
+		if _fps_ruins < 2 or not placa_no_limite:
 			return
 		_fps_ruins = 0
-		if _fator > FATOR_MIN + 0.01:
+		var auto := str(Ajustes.valor("video", "qualidade")) == "auto"
+		if auto and _qualidade == "alta":
+			_qualidade_pendente = "media"
+			print("Qualidade automática: média (%d quadros/s, %d%% atrasados, placa %.1f ms) no próximo clarão" % [int(fps), int(atrasados * 100.0), placa])
+		elif _fator > FATOR_MIN + 0.01:
 			_teto = _fator
 			_teto_ate = agora + 90000
 			_pedir_fator(maxf(FATOR_MIN, _fator - 0.1), fps)
-		elif str(Ajustes.valor("video", "qualidade")) == "auto" and _qualidade != "baixa" and fps < alvo * 0.7:
-			_qualidade_pendente = "media" if _qualidade == "alta" else "baixa"
+		elif auto and _qualidade != "baixa" and fps < alvo * 0.75:
+			_qualidade_pendente = "baixa"
 			_pedir_fator(1.0, fps)
-			print("Qualidade automática: ", _qualidade_pendente, " (", int(fps), " quadros/s) no próximo clarão")
-	elif fps >= alvo * 0.97:
+			print("Qualidade automática: baixa (%d quadros/s) no próximo clarão" % int(fps))
+	elif fps >= alvo * 0.97 and atrasados < 0.01:
 		_fps_ruins = 0
 		_fps_bons += 1
 		if _fps_bons >= 4 and _fator < 1.0:
@@ -1807,8 +1885,11 @@ func _no_clarao() -> void:
 		_qualidade_pendente = ""
 		mundo.aplicar_qualidade(_qualidade)
 		_qualidade_viewport()
+		_tela_mudou(Tela.tamanho())
+		_qualidade_salvar = str(Ajustes.valor("video", "qualidade")) == "auto"
 	if _fator_pendente > 0.0:
 		_fator = _fator_pendente
 		_fator_pendente = -1.0
 		_tela_mudou(Tela.tamanho())
 		_fator_salvar = true
+	_fps_t0 = 0   # a próxima medida começa depois da troca
