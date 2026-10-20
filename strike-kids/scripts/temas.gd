@@ -22,7 +22,10 @@ const CONFIG := {
 		"fundo": [Color("#3A1C8C"), Color("#7A3FD6")], "halo": Color("#FFD6F4"),
 		"portal": [Color("#FFC21A"), Color("#E8384F")], "gabinete": Color("#E8384F"), "coluna": Color("#1E62C8"), "neon": Color("#FF4FC8"),
 		"parede": Color("#2A63C4"),
-		"placa": Color("#1E3FA0"), "divisoria": Color("#FFB627"), "faixa": Color("#E8384F"), "canaleta": Color("#8FC4EE"),
+		"placa": Color("#1E3FA0"), "divisoria": Color("#FFB627"), "faixa": Color("#E8384F"),
+		# canaleta de doce (listras rosa e creme, lábios amarelos) e para-choques de bala
+		"canaleta_modo": 0, "canaleta": [Color("#FF6FAE"), Color("#FFF3E2"), Color("#FFD23F")],
+		"bumper": [Color("#FFFFFF"), Color("#FF3B50")],
 		"chao": [Color("#6BCB5D"), Color("#5BB54E"), Color("#FFFFFF"), Color("#FFE873")], "chao_modo": 0,
 	},
 	"espaco": {
@@ -34,7 +37,10 @@ const CONFIG := {
 		"fundo": [Color("#0B1450"), Color("#2A3FB0")], "halo": Color("#9FE8FF"),
 		"portal": [Color("#4FD8FF"), Color("#3B2FA8")], "gabinete": Color("#3B3FA8"), "coluna": Color("#6A3FD0"), "neon": Color("#4FE3FF"),
 		"parede": Color("#3B4FC8"),
-		"placa": Color("#141E66"), "divisoria": Color("#4FD8FF"), "faixa": Color("#FF9F2E"), "canaleta": Color("#7FB2FF"),
+		"placa": Color("#141E66"), "divisoria": Color("#4FD8FF"), "faixa": Color("#FF9F2E"),
+		# canaleta de nave (metal com luzes correndo) e para-choques azul e branco
+		"canaleta_modo": 1, "canaleta": [Color("#26357A"), Color("#9FB4FF"), Color("#4FE3FF")],
+		"bumper": [Color("#FFFFFF"), Color("#3B8BFF")],
 		"chao": [Color("#9AA8C4"), Color("#8494B3"), Color("#C3CEE2"), Color("#E2F5FF")], "chao_modo": 1,
 	},
 	"mar": {
@@ -46,7 +52,10 @@ const CONFIG := {
 		"fundo": [Color("#064A70"), Color("#0FA0B8")], "halo": Color("#C8FFF4"),
 		"portal": [Color("#2EE6C8"), Color("#FF7A5C")], "gabinete": Color("#0E8C9C"), "coluna": Color("#FF7A5C"), "neon": Color("#5CFFD8"),
 		"parede": Color("#18A6B8"),
-		"placa": Color("#0B5A80"), "divisoria": Color("#FF8A5C"), "faixa": Color("#2EC4B6"), "canaleta": Color("#7FD8E8"),
+		"placa": Color("#0B5A80"), "divisoria": Color("#FF8A5C"), "faixa": Color("#2EC4B6"),
+		# canaleta de água (reflexos e bolhinhas) e para-choques coral
+		"canaleta_modo": 2, "canaleta": [Color("#0C86A6"), Color("#56E0EA"), Color("#E9FFFB")],
+		"bumper": [Color("#FFFFFF"), Color("#FF7A5C")],
 		"chao": [Color("#F9DCA2"), Color("#EDC98A"), Color("#FFB09E"), Color("#9EDDE6")], "chao_modo": 2,
 	},
 	"dinos": {
@@ -58,7 +67,10 @@ const CONFIG := {
 		"fundo": [Color("#14501E"), Color("#3E9A2E")], "halo": Color("#FFF2A8"),
 		"portal": [Color("#9BE04A"), Color("#FF8A1E")], "gabinete": Color("#8A5228"), "coluna": Color("#2E9A3E"), "neon": Color("#B6FF3B"),
 		"parede": Color("#3E9A3A"),
-		"placa": Color("#1E5A28"), "divisoria": Color("#FF9F2E"), "faixa": Color("#8BD33F"), "canaleta": Color("#9BD58A"),
+		"placa": Color("#1E5A28"), "divisoria": Color("#FF9F2E"), "faixa": Color("#8BD33F"),
+		# canaleta de bambu e para-choques amarelo e verde
+		"canaleta_modo": 3, "canaleta": [Color("#6DBB45"), Color("#D4F58A"), Color("#F2D27A")],
+		"bumper": [Color("#FFE65A"), Color("#2E9A3E")],
 		"chao": [Color("#46A44E"), Color("#57B948"), Color("#FF9F33"), Color("#FFE65A")], "chao_modo": 3,
 	},
 }
@@ -194,10 +206,11 @@ func _animar(tema: String, item: Dictionary) -> void:
 
 
 ## Espalha objetos pelo terreno, longe da pista (mesma regra do parque).
-func _espalhar(tema: String, tipos: Array, qtd: int, semente: int, escala := {}) -> void:
+func _espalhar(tema: String, tipos: Array, qtd: int, semente: int, escala := {}, evitar: Array[Vector2] = []) -> void:
 	var rnd := RandomNumberGenerator.new()
 	rnd.seed = semente
-	var usados: Array[Vector2] = []
+	# evitar: lugares já ocupados por peças grandes (nada nasce dentro delas)
+	var usados: Array[Vector2] = evitar.duplicate()
 	var colocados := 0
 	var tentativas := 0
 	while colocados < qtd and tentativas < 2000:
@@ -361,15 +374,27 @@ func _espaco() -> void:
 	var T := "espaco"
 	var rnd := RandomNumberGenerator.new()
 	rnd.seed = 404
-	# planeta com anel atrás dos pinos (aparece por cima do letreiro)
+	# planeta com anel atrás dos pinos (aparece por cima do letreiro); gira
+	# em volta do eixo do ANEL (o da malha, tools/modelos/temas.py): o anel
+	# fica sempre com a mesma inclinação (girando em volta do eixo do mundo
+	# ele ficava de lado, um "palito")
 	var pa := _obj(T, "planeta_anel", Vector3(0.3, 3.7, Mundo.Z_FUNDO - 2.6), 0.0, 1.15)
 	pa.rotation = Vector3(0.18, 0.0, 0.32)
-	_animar(T, {"tipo": "girar", "no": pa, "vel": 0.12})
-	_torres(T, "foguete", 1.0)
-	# disco voador dando voltas sobre a pista
-	var ovni := _obj(T, "ovni", Vector3(0, 4.8, -10), 0.0, 1.0, 0.004)
-	_animar(T, {"tipo": "orbita", "no": ovni, "centro": Vector3(0, 4.6, -11.0), "raio": Vector2(3.6, 5.0), "vel": 0.32,
-		"fase": 0.0, "girar": 1.6, "sobe": 0.35})
+	_animar(T, {"tipo": "girar_proprio", "no": pa, "vel": 0.12, "eixo": Vector3(-0.336, 0.894, 0.296).normalized()})
+	# dois foguetes em pé no chão, ao lado do gabinete, inteiros à vista
+	# (atrás das colunas só aparecia a pontinha das aletas)
+	var foguetes: Array[Vector2] = []
+	for s in [-1.0, 1.0]:
+		var fx: float = s * 3.35
+		var fz := -11.0
+		_obj(T, "foguete", Vector3(fx, _chao(fx, fz) - 0.03, fz), -s * deg_to_rad(35.0), 0.95, 0.004)
+		foguetes.append(Vector2(fx, fz))
+	# disco voador passeando por cima do fim da pista: na FRENTE do planeta
+	# e acima do letreiro (nunca atravessa o planeta nem some atrás do arco),
+	# inclinando nas curvas como um aviãozinho
+	var ovni := _obj(T, "ovni", Vector3(0, 5.0, -12.1), 0.0, 1.0, 0.004)
+	_animar(T, {"tipo": "passeio", "no": ovni, "centro": Vector3(0, 5.0, -12.1), "raio": Vector3(3.1, 0.25, 0.65),
+		"vel": 0.3, "girar": 1.6, "ang": 0.0})
 	# planetinhas coloridos no céu
 	for i in _q(8):
 		var lado := -1.0 if i % 2 == 0 else 1.0
@@ -382,10 +407,12 @@ func _espaco() -> void:
 		var lado := -1.0 if i % 2 == 0 else 1.0
 		var base := Vector3(lado * rnd.randf_range(2.1, 3.4), rnd.randf_range(2.2, 3.8), rnd.randf_range(-17.0, -3.0))
 		var e := _obj(T, "estrela_3d", base, 0.0, rnd.randf_range(0.6, 0.9), 0.003)
+		# balança de um lado para o outro (girando inteira ela ficava de
+		# perfil, um palitinho amarelo)
 		_animar(T, {"tipo": "boiar", "no": e, "base": base, "fase": rnd.randf() * TAU, "vel": rnd.randf_range(0.7, 1.1),
-			"amp": Vector3(0.0, 0.2, 0.0), "girar": 0.8})
+			"amp": Vector3(0.0, 0.2, 0.0), "olhar": -lado * 0.35, "vira": 0.45})
 	_espalhar(T, ["cristal", "pedra_lua", "cristal", "pedra_lua", "pedra_lua", "foguete"], _q(38), 77,
-		{"cristal": 1.3, "pedra_lua": 1.6, "foguete": 0.8})
+		{"cristal": 1.3, "pedra_lua": 1.6, "foguete": 0.8}, foguetes)
 	_destaques(T, [["cristal", 0.9, 0.004], ["cristal", 1.0, 0.004], ["pedra_lua", 1.0, 0.004], ["cristal", 0.8, 0.004],
 		["pedra_lua", 1.1], ["cristal", 1.0], ["pedra_lua", 1.0], ["cristal", 1.1]])
 	# estrelas cadentes de vez em quando (faíscas que atravessam o céu)
@@ -521,6 +548,20 @@ func _process(delta: float) -> void:
 					no.rotation.z = sin(_t * 0.7 * v + f) * float(item["balanco"])
 				if item.has("girar"):
 					no.rotation.y += float(item["girar"]) * delta
+				if item.has("vira"):
+					no.rotation.y = float(item["olhar"]) + sin(_t * 0.6 * v + f) * float(item["vira"])
+			"girar_proprio":
+				(item["no"] as Node3D).rotate_object_local(item["eixo"], float(item["vel"]) * delta)
+			"passeio":
+				# uma volta deitada e achatada (x larga, z curta) com um sobe e
+				# desce em "8"; o disco gira no próprio eixo e inclina para o
+				# lado da curva
+				var no: Node3D = item["no"]
+				var a: float = _t * float(item["vel"])
+				var r: Vector3 = item["raio"]
+				no.position = (item["centro"] as Vector3) + Vector3(sin(a) * r.x, sin(2.0 * a) * r.y, cos(a) * r.z)
+				item["ang"] = fposmod(float(item["ang"]) + float(item["girar"]) * delta, TAU)
+				no.basis = Basis(Vector3(0, 0, 1), -cos(a) * 0.2) * Basis(Vector3.UP, float(item["ang"]))
 			"roda":
 				var roda: Node3D = item["roda"]
 				roda.rotation.z += float(item["vel"]) * delta

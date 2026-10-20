@@ -64,11 +64,13 @@ def braco(s, cores, punho=None):
     return superior, inferior
 
 
-def perna(s, cores, barra=None, cano=None, garras=None):
-    """(coxa, canela, pé, pinturas do pé, pinturas da canela).
+def perna(s, cores, barra=None, cano=None, garras=None, listras=None, meia=None):
+    """(coxa, canela, pé, pinturas do pé, pinturas da canela, pinturas da coxa).
     barra = cor da barra da calça (anel acima do joelho); cano = (cor da
     bota, cor da dobra): a bota sobe pela canela e termina numa dobra;
-    garras = cor das garrinhas (dino)."""
+    garras = cor das garrinhas (dino); listras = cor das listras da
+    meia-calça (coxa e canela); meia = cor do elástico da meia (um anel
+    gordinho logo abaixo do joelho)."""
     q, j, t = espelho(QUADRIL, s), espelho(JOELHO, s), espelho(TORNOZELO, s)
     coxa = Capsula(q + np.array([0, 0.02, 0]), j, 0.057, cores["coxa"], rb=0.05)
     superior = coxa.solda(Esfera(j, 0.049, cores["joelho"]), 0.015)
@@ -76,13 +78,21 @@ def perna(s, cores, barra=None, cano=None, garras=None):
         superior = superior | Toro(j + np.array([0.0, 0.035, 0.0]), 0.05, 0.013, barra)
     inferior = Capsula(j, t + np.array([0, 0.01, 0]), 0.048, cores["canela"], rb=0.045)
     pint_canela = []
+    pint_coxa = []
+    if listras is not None:
+        def faixas(P):
+            return np.mod(np.floor(P[:, 1] / 0.03), 2) == 1
+        pint_coxa = [Pintura(faixas, listras)]
+        pint_canela = [Pintura(faixas, listras)]
+    if meia is not None:
+        inferior = inferior | Toro(np.array([t[0], 0.185, 0.004]), 0.045, 0.013, meia)
     if cano is not None:
         bota, dobra = cano
         inferior = inferior | Toro(np.array([t[0], 0.14, t[2] + 0.002]), 0.046, 0.017, dobra)
 
         def cano_bota(P):
             return P[:, 1] < 0.14
-        pint_canela = [Pintura(cano_bota, bota)]
+        pint_canela.append(Pintura(cano_bota, bota))
     pe = Elipsoide((t[0], 0.05, 0.03), (0.064, 0.056, 0.09), cores["pe"])
     pe = pe.solda(Esfera((t[0], 0.075, 0.0), 0.045, cores["pe"]), 0.03)
     pe = Intersecao(pe, SemiEspaco((0, 0.003, 0), (0, -1, 0)), 0.012)
@@ -93,7 +103,7 @@ def perna(s, cores, barra=None, cano=None, garras=None):
 
     def dedos(P, x=x):
         return (P[:, 2] > 0.085) & (P[:, 1] < 0.065) & (np.abs(np.abs(P[:, 0] - x) - 0.021) < 0.0045)
-    return superior, inferior, pe, [Pintura(dedos, cores["dedo"])], pint_canela
+    return superior, inferior, pe, [Pintura(dedos, cores["dedo"])], pint_canela, pint_coxa
 
 
 # ------------------------------------------------------------- cabeça: orelhas
@@ -243,7 +253,9 @@ def enfeites_dino(c, largura, folga, pal):
     for s in (1, -1):
         p, n = ponto_no_topo(c, largura, folga, -22.0, s * 0.092)
         partes.append(Esfera(p + n * 0.014, 0.038, pal.olho_dino))
-        partes.append(Esfera(p + n * 0.03 + np.array([0.0, 0.0, 0.024]), 0.017, pal.pupila))
+        pupila = p + n * 0.03 + np.array([0.0, 0.0, 0.024])
+        partes.append(Esfera(pupila, 0.017, pal.pupila))
+        partes.append(Esfera(pupila + np.array([0.006, 0.008, 0.012]), 0.0065, pal.olho_dino))
     for ang, h, r in ((-6.0, 0.075, 0.038), (24.0, 0.085, 0.042), (54.0, 0.075, 0.038), (84.0, 0.058, 0.032)):
         p, n = ponto_no_topo(c, largura, folga, ang)
         partes.append(ConeRedondo(p - n * 0.012, p + n * h, r, 0.008, pal.espinho))
@@ -498,7 +510,7 @@ def bob_fantasia(roupa):
         extra["perna"] = dict(barra=pal.calca, cano=(pal.bota, pal.dobra))
     elif roupa == "dino":
         pal = _paleta_bob(fantasia=hex_cor("#58C255"), barriga=hex_cor("#FFF0A8"), espinho=hex_cor("#FF8A2B"),
-                          dente=hex_cor("#FFFFFF"), olho_dino=hex_cor("#FFFFFF"), pupila=hex_cor("#1B1530"),
+                          dente=hex_cor("#FFFFFF", 0.35), olho_dino=hex_cor("#FFFFFF", 0.35), pupila=hex_cor("#1B1530"),
                           unha=hex_cor("#FFFFFF"))
         cab = cabeca_base(pal.pelo, pal.focinho, pal.nariz)
         cab = cab | capuz(c, 1.0, 0.042, pal.fantasia) | enfeites_dino(c, 1.0, 0.042, pal)
@@ -514,8 +526,8 @@ def bob_fantasia(roupa):
         rabo = rabo_dino(pal.fantasia, pal.espinho)
         extra["rabo_caixa"] = ((-0.16, 0.16, -0.52), (0.16, 0.58, -0.04))
     elif roupa == "astronauta":
-        pal = _paleta_bob(traje=hex_cor("#F2F4F8"), detalhe=hex_cor("#2E7BEA"), cinza=hex_cor("#7D8799"),
-                          luva=hex_cor("#C3CAD6"), luz=hex_cor("#FFD54F", 0.5), vermelho=hex_cor("#FF4D4D"),
+        pal = _paleta_bob(traje=hex_cor("#F2F4F8"), detalhe=hex_cor("#2E7BEA"), cinza=hex_cor("#4A86F0"),
+                          luva=hex_cor("#CFE3FF"), luz=hex_cor("#FFD54F", 0.5), vermelho=hex_cor("#FF4D4D"),
                           amarelo=hex_cor("#FFD43B"), verde=hex_cor("#3DDC84"), tela=hex_cor("#1B2B4A"))
         cab = cabeca_base(pal.pelo, pal.focinho, pal.nariz)
         cab = cab | capuz(c, 1.0, 0.05, pal.traje) | enfeites_capacete(c, 1.0, 0.05, pal)
@@ -532,7 +544,8 @@ def bob_fantasia(roupa):
     else:  # parque
         pal = _paleta_bob(camisa=hex_cor("#F2443A"), bermuda=hex_cor("#3D6FB6"), bone_a=hex_cor("#FF4D4D"),
                           bone_b=hex_cor("#FFD43B"), bone_c=hex_cor("#2E7BEA"), aba=hex_cor("#2E7BEA"),
-                          helice_a=hex_cor("#FF4D4D"), helice_b=hex_cor("#FFD43B"), lenco=hex_cor("#FFD43B"))
+                          helice_a=hex_cor("#FF4D4D"), helice_b=hex_cor("#FFD43B"), lenco=hex_cor("#FFD43B"),
+                          meia=hex_cor("#FFFFFF"), tenis=hex_cor("#2E7BEA"))
         cab = orelhas_bob(cabeca_base(pal.pelo, pal.focinho, pal.nariz), c, pal.orelha).solda(bone(c, pal), 0.01)
         pint_cab = gomos_bone(c, pal)
         lenco = unir(Toro((0, 0.615, 0.0), 0.078, 0.026, pal.lenco),
@@ -540,13 +553,14 @@ def bob_fantasia(roupa):
         tronco = _tronco_bob(pal.camisa).solda(Elipsoide((0, 0.355, 0.0), (0.15, 0.075, 0.125), pal.bermuda), 0.04)
         tronco = tronco.solda(Capsula((0, 0.58, 0), (0, 0.69, 0), 0.062, pal.pelo_corpo), 0.02).solda(lenco, 0.008)
         pint_tronco = []
+        # meia branca com elástico vermelho e tênis azul
         cores = dict(manga=pal.camisa, braco=pal.pelo_corpo, antebraco=pal.pelo_corpo, mao=pal.pata, coxa=pal.bermuda,
-                     joelho=pal.pelo_corpo, canela=pal.pelo_corpo, pe=pal.pata, dedo=pal.dedo)
+                     joelho=pal.pelo_corpo, canela=pal.meia, pe=pal.tenis, dedo=pal.meia)
         estampa = {"tipo": "bolinhas", "base": "#F2443A", "cor": "#FFFFFF", "raio": 0.017, "y0": 0.44 - QUADRIL_Y,
                    "dy": 0.052, "fileiras": 3, "n0": 11, "y_max": 0.6 - QUADRIL_Y}
         rabo = _rabo_bob(pal)
         extra["helice"] = helice(pal)
-        extra["perna"] = dict(barra=pal.bermuda)
+        extra["perna"] = dict(barra=pal.bermuda, meia=pal.camisa)
     return pal, (cab, pint_cab), (tronco, pint_tronco), cores, rabo, estampa, extra
 
 
@@ -558,26 +572,29 @@ def mia_fantasia(roupa):
         pal = _paleta_mia(blusa=hex_cor("#F6F1E6"), saia=hex_cor("#E8344E"), bandana=hex_cor("#E53935"),
                           bolinha_bandana=hex_cor("#FFFFFF"), cinto=hex_cor("#6B3E1E"), ouro=hex_cor("#FFC93C"),
                           bota=hex_cor("#5A3420"), dobra=hex_cor("#8A5634"))
-        extra["perna"] = dict(cano=(pal.bota, pal.dobra))
+        # meia-calça listrada e blusa de manga comprida (punho vermelho): sem
+        # pelo cinza aparecendo entre as peças
+        extra["perna"] = dict(cano=(pal.bota, pal.dobra), listras=pal.saia)
+        extra["braco"] = dict(punho=pal.saia)
         band = bandana(c, larg, pal)
         cab = orelhas_mia(cabeca_base(pal.pelo, pal.focinho, pal.nariz, largura=larg), c, pal.orelha) | band
         pint_cab = [Pintura(fora_de(band, dentro_orelha_mia(c)), pal.orelha_dentro),
-                    Pintura(fora_de(band, listras_mia(c)), pal.listra), bolinhas_bandana(c, pal, band)]
+                    bolinhas_bandana(c, pal, band)]
         roupa_cor, saia_cor, manga = pal.blusa, pal.saia, pal.blusa
         estampa = {"tipo": "listras", "base": "#F6F1E6", "cor": "#1E6FD9", "y0": 0.45 - QUADRIL_Y, "periodo": 0.042,
                    "raio": 0.011, "y_max": 0.63 - QUADRIL_Y}
-        cores = dict(manga=manga, braco=pal.pelo_corpo, antebraco=pal.pelo_corpo, mao=pal.pata, coxa=pal.pelo_corpo,
-                     joelho=pal.pelo_corpo, canela=pal.pelo_corpo, pe=pal.bota, dedo=pal.bota)
+        cores = dict(manga=manga, braco=pal.blusa, antebraco=pal.blusa, mao=pal.pata, coxa=pal.blusa,
+                     joelho=pal.blusa, canela=pal.blusa, pe=pal.bota, dedo=pal.bota)
         gola = None
         rabo = _rabo_mia(pal)
         enfeite = cinto(0.455, 0.152, pal)
     elif roupa == "dino":
         pal = _paleta_mia(fantasia=hex_cor("#B07CF0"), barriga=hex_cor("#FFD6EC"), espinho=hex_cor("#FF5FA2"),
-                          dente=hex_cor("#FFFFFF"), olho_dino=hex_cor("#FFFFFF"), pupila=hex_cor("#1B1530"),
+                          dente=hex_cor("#FFFFFF", 0.35), olho_dino=hex_cor("#FFFFFF", 0.35), pupila=hex_cor("#1B1530"),
                           unha=hex_cor("#FFFFFF"))
         cab = cabeca_base(pal.pelo, pal.focinho, pal.nariz, largura=larg)
         cab = cab | capuz(c, larg, 0.042, pal.fantasia) | enfeites_dino(c, larg, 0.042, pal)
-        pint_cab = [Pintura(listras_mia(c, True), pal.listra), forro(c, larg, 0.042, pal.barriga)]
+        pint_cab = [forro(c, larg, 0.042, pal.barriga)]
         roupa_cor, saia_cor, manga = pal.fantasia, pal.fantasia, pal.fantasia
         estampa = {}
         cores = dict(manga=manga, braco=pal.fantasia, antebraco=pal.fantasia, mao=pal.pata, coxa=pal.fantasia,
@@ -588,12 +605,12 @@ def mia_fantasia(roupa):
         extra["rabo_caixa"] = ((-0.16, 0.16, -0.52), (0.16, 0.58, -0.04))
         enfeite = espinhos_costas(pal)
     elif roupa == "astronauta":
-        pal = _paleta_mia(traje=hex_cor("#F2F4F8"), detalhe=hex_cor("#FF5FA2"), cinza=hex_cor("#7D8799"),
-                          luva=hex_cor("#C3CAD6"), luz=hex_cor("#FFD54F", 0.5), vermelho=hex_cor("#FF4D4D"),
+        pal = _paleta_mia(traje=hex_cor("#F2F4F8"), detalhe=hex_cor("#FF5FA2"), cinza=hex_cor("#F06AB0"),
+                          luva=hex_cor("#FFD6EA"), luz=hex_cor("#FFD54F", 0.5), vermelho=hex_cor("#FF4D4D"),
                           amarelo=hex_cor("#FFD43B"), verde=hex_cor("#3DDC84"), tela=hex_cor("#1B2B4A"))
         cab = cabeca_base(pal.pelo, pal.focinho, pal.nariz, largura=larg)
         cab = cab | capuz(c, larg, 0.05, pal.traje) | enfeites_capacete(c, larg, 0.05, pal)
-        pint_cab = [Pintura(listras_mia(c, True), pal.listra), faixa_capacete(c, larg, 0.05, pal),
+        pint_cab = [faixa_capacete(c, larg, 0.05, pal),
                     forro(c, larg, 0.05, pal.detalhe)]
         roupa_cor, saia_cor, manga = pal.traje, pal.traje, pal.traje
         estampa = {}
@@ -607,7 +624,8 @@ def mia_fantasia(roupa):
     else:  # parque
         pal = _paleta_mia(vestido=hex_cor("#2BC4A0"), gola=hex_cor("#FFFFFF"), bone_a=hex_cor("#FF7AB8"),
                           bone_b=hex_cor("#B07CF0"), bone_c=hex_cor("#FFD43B"), aba=hex_cor("#FF7AB8"),
-                          helice_a=hex_cor("#FF7AB8"), helice_b=hex_cor("#2BC4A0"))
+                          helice_a=hex_cor("#FF7AB8"), helice_b=hex_cor("#2BC4A0"), meia=hex_cor("#FFFFFF"),
+                          sapato=hex_cor("#FF7AB8"))
         bo = bone(c, pal)
         cab = orelhas_mia(cabeca_base(pal.pelo, pal.focinho, pal.nariz, largura=larg), c, pal.orelha).solda(bo, 0.01)
         # o boné cobre a testa (sem listrinhas); o rosa só dentro das orelhas
@@ -615,8 +633,10 @@ def mia_fantasia(roupa):
         roupa_cor, saia_cor, manga = pal.vestido, pal.vestido, pal.vestido
         estampa = {"tipo": "bolinhas", "base": "#2BC4A0", "cor": "#FFE14D", "raio": 0.019, "y0": 0.31 - QUADRIL_Y,
                    "dy": 0.05, "fileiras": 3, "n0": 12, "y_max": 0.44 - QUADRIL_Y}
+        # meia branca com elástico rosa e sapatinho rosa
         cores = dict(manga=manga, braco=pal.pelo_corpo, antebraco=pal.pelo_corpo, mao=pal.pata, coxa=pal.pelo_corpo,
-                     joelho=pal.pelo_corpo, canela=pal.pelo_corpo, pe=pal.pata, dedo=pal.dedo)
+                     joelho=pal.pelo_corpo, canela=pal.meia, pe=pal.sapato, dedo=pal.meia)
+        extra["perna"] = dict(meia=pal.sapato)
         gola = unir(Elipsoide((0.04, 0.603, 0.06), (0.05, 0.022, 0.04), pal.gola, rot=rot_z(-0.25)),
                     Elipsoide((-0.04, 0.603, 0.06), (0.05, 0.022, 0.04), pal.gola, rot=rot_z(0.25)),
                     Toro((0, 0.612, 0.0), 0.072, 0.02, pal.gola), k=0.01)
@@ -668,10 +688,10 @@ def gerar_fantasia(nome, roupa, pasta):
         xs = sorted([s * 0.12, s * 0.34])
         pac.adicionar("antebraco_" + lado, sem_rosto(inf, [], (xs[0], 0.26, -0.1), (xs[1], 0.53, 0.12)), "braco_" + lado, co - om, co)
     for lado, s in (("e", 1), ("d", -1)):
-        sup, inf, pe, pint, pint_canela = perna(s, cores, **extra.get("perna", {}))
+        sup, inf, pe, pint, pint_canela, pint_coxa = perna(s, cores, **extra.get("perna", {}))
         qq, jj, tt = espelho(QUADRIL, s), espelho(JOELHO, s), espelho(TORNOZELO, s)
         x = qq[0]
-        pac.adicionar("coxa_" + lado, sem_rosto(sup, [], (x - 0.09, 0.15, -0.09), (x + 0.09, 0.45, 0.09)), "corpo", qq - q, qq)
+        pac.adicionar("coxa_" + lado, sem_rosto(sup, pint_coxa, (x - 0.09, 0.15, -0.09), (x + 0.09, 0.45, 0.09)), "corpo", qq - q, qq)
         pac.adicionar("canela_" + lado, sem_rosto(inf, pint_canela, (x - 0.08, 0.04, -0.08), (x + 0.08, 0.28, 0.09)),
                       "coxa_" + lado, jj - qq, jj)
         pac.adicionar("pe_" + lado, sem_rosto(pe, pint, (x - 0.09, -0.02, -0.08), (x + 0.09, 0.14, 0.15)), "canela_" + lado, tt - jj, tt)

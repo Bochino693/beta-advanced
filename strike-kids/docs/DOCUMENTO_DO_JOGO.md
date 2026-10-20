@@ -253,7 +253,18 @@ Depois de cada bola, como num boliche de verdade:
    lugar certo) e sobe.
 3. A barra **varre** os caídos para o fosso — ela é um corpo físico e
    empurra os pinos de verdade.
-4. A mesa desce e devolve os pinos; na rodada nova ela desce com os
+4. **Alçapão**: a câmera corta para o fosso visto de cima (por cima da
+   parede da direita), as duas portinhas do chão do fosso (`AnimatableBody3D`
+   com dobradiça na beirada de fora) abrem para baixo e os pinos caem, com
+   a física, num **poço fundo** (1,6 m): paredes e fundo com colisão, o
+   terreno tem um furo ali (`tools/modelos/modelos.py`, `FURO_*`), o
+   `shaders/poco.gdshader` escurece com a fundura e desenha faixas de luz
+   (a perspectiva da queda) e cada pino escurece conforme desce (`escuro`
+   no `toon_personagem`). As portinhas fecham junto com a volta da barra e
+   a câmera volta para a mesa. O chão do alçapão fechado fica na mesma
+   altura e com o mesmo atrito do resto do fosso: a física da jogada não
+   muda (a bola já foi recolhida antes de ele abrir).
+5. A mesa desce e devolve os pinos; na rodada nova ela desce com os
    **10 pinos novinhos**. Barra sobe e a pista está pronta.
 
 ## 6b. Caçapa, gabinete e salão (`scripts/mundo.gd`, `scripts/perfis.gd`)
@@ -288,9 +299,18 @@ Depois de cada bola, como num boliche de verdade:
 | Cenário | Céu e luz | Destaques |
 | --- | --- | --- |
 | Parque de Diversões | azul com nuvens, gramado listrado | arco-íris com lâmpadas, torres de circo (branco e vermelho), roda-gigante girando, carrossel, tendas, pirulitos azuis e amarelos, balões |
-| Viagem ao Espaço | noite estrelada com nebulosa, chão de lua com crateras | planeta com anel atrás dos pinos, foguetes, disco voador dando voltas, planetinhas, cristais, estrelas cadentes |
+| Viagem ao Espaço | noite estrelada com nebulosa, chão de lua com crateras | planeta com anel atrás dos pinos (gira no eixo do anel: o anel nunca fica de lado), dois foguetes em pé ao lado do gabinete, disco voador passeando por cima do arco e NA FRENTE do planeta (inclinando nas curvas, nunca atravessa nada), planetinhas, cristais, estrelas balançando, estrelas cadentes |
 | Fundo do Mar | azul-turquesa com raios de luz, areia com ondinhas | concha gigante, corais, algas balançando, cardumes de peixinhos, águas-vivas, tartarugas, bolhas subindo, baú |
 | Selva dos Dinos | céu quente de aventura, selva verde | vulcão fumegando, dino pescoçudo espiando atrás dos pinos, pterossauros voando, palmeiras, ovos de dino, flores gigantes |
+
+**Canaleta e para-choques de cada cenário** (`shaders/canaleta.gdshader`,
+`Temas.CONFIG`: `canaleta_modo`, `canaleta`, `bumper`): a mesma meia-cana
+(e a mesma colisão) com o desenho da fase — listras de doce rosa e creme
+(Parque), metal azul-escuro com emendas, rebites e luzes correndo até os
+pinos (Espaço), água turquesa com reflexos ondulando e bolhinhas (Fundo do
+Mar), bambu com nós e fibras (Selva dos Dinos) — e os para-choques com as
+cores da fase. Shader sem textura e sem conta de luz do motor (mais leve
+que a canaleta antiga).
 
 **Símbolo da Lazer & Sport em todo cenário** (`Mundo._marcas_dos_cenarios`),
 discreto e sempre no mesmo lugar (ao lado da pista, flutuando): balãozinho
@@ -324,10 +344,10 @@ visibilidade grande (nunca some por engano).
 
 | Fase | Bob | Mia |
 | --- | --- | --- |
-| Fundo do Mar | pirata: chapéu bicorne com caveirinha e friso dourado, camiseta listrada (desenhada no shader), lenço, cinto com fivela, calça com barra, botas de cano dobrado | pirata: bandana de bolinhas com nó, blusinha listrada, saia vermelha, cinto, botas |
+| Fundo do Mar | pirata: chapéu bicorne com caveirinha e friso dourado, camiseta listrada (desenhada no shader), lenço, cinto com fivela, calça com barra, botas de cano dobrado | pirata: bandana de bolinhas com nó, blusinha listrada de manga comprida com punho vermelho, saia vermelha, cinto, meia-calça listrada, botas |
 | Selva dos Dinos | dinossaurinho verde: capuz com dentinhos, olhinhos e espinhos, forro amarelo, barriga em relevo, espinhos nas costas, rabo, garrinhas | igual, lilás com forro e barriga rosa |
 | Espaço | astronauta azul: capacete aberto com anel, protetores de orelha e antena que brilha, mochila, painel com botões, luvas e botas com punho | astronauta rosa |
-| Parque | boné de hélice (vermelho/amarelo/azul; a hélice gira mais rápido quando ele está feliz), camisa de bolinhas, lenço, bermuda | boné de hélice (rosa/lilás/amarelo, orelhas para fora), vestido de bolinhas com golinha |
+| Parque | boné de hélice (vermelho/amarelo/azul; a hélice gira mais rápido quando ele está feliz), camisa de bolinhas, lenço, bermuda, meia branca com elástico vermelho e tênis azul | boné de hélice (rosa/lilás/amarelo, orelhas para fora), vestido de bolinhas com golinha, meia branca com elástico rosa e sapatinho rosa |
 
 Peças 3D de verdade (volume, contorno, luz), com as **mesmas juntas** do
 mascote: a troca só substitui a malha de cada junta — animações, IK das
@@ -336,7 +356,10 @@ compilado. O **rosto nunca é coberto**: capuz e capacete são uma casca
 aberta por um plano quase em pé que passa pela testa e por trás das
 bochechas, emoldurando o rosto (a face do corte ganha a cor do forro); as
 pinturas de cada peça ficam só nela (as listrinhas da testa da Mia e o rosa
-de dentro das orelhas não vão para o boné/bandana). Na atração, na escolha
+de dentro das orelhas não vão para o boné/bandana). A face de um corte
+reto (barra da bandana, aba e beirada do boné, barra da saia, sola do pé)
+fica com a cor da PRÓPRIA peça (`sdf.Intersecao` com `SemiEspaco`): antes
+ela saía com a cor do pelo — os "detalhes cinzas" na roupa da Mia. Na atração, na escolha
 e na foto: a roupa de sempre. Memória: a roupa da 1ª fase começa a
 carregar em segundo plano no START (`ResourceLoader.load_threaded_request`),
 a da fase seguinte durante a rodada; a troca acontece escondida no clarão
@@ -421,6 +444,15 @@ vértice.
     1/120 s (o mesmo da calibração das jogadas); na câmera lenta a física
     só dá menos passos por segundo (0,4 = 48/s) e a interpolação deixa a
     imagem lisa — o resultado da jogada não depende do QPS da máquina;
+  - **ritmo do jogo** ("Velocidade do jogo" no menu, 130% de fábrica): o
+    mesmo truque ao contrário — a física dá MAIS passos por segundo (156/s
+    a 130%, sempre de 1/120 s) e o `Engine.time_scale` acompanha: bola,
+    pinos, bichinhos, câmera, máquina e as esperas entre as jogadas andam
+    30% mais rápido, com o mesmo resultado calibrado. As contagens que a
+    criança vê (escolha, foto 3-2-1, fim de jogo, inatividade) andam em
+    segundos de verdade (`_delta_real`) e o menu do operador roda no tempo
+    real. Até 8 passos de física por quadro (`max_physics_steps_per_frame`):
+    o ritmo se mantém mesmo a ~20 QPS;
   - **medidor** (`scripts/medidor.gd`): painel de QPS/ms/CPU/placa de vídeo/
     desenhos/memória (F3 ou menu do operador) e TESTE DE DESEMPENHO de 20 s
     com qualidade recomendada (grava `user://desempenho.txt`); bancada

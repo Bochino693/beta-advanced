@@ -23,6 +23,14 @@ const Z_FUNDO := -13.7
 ## para-choques: 10 pedaços de 0,96 m a partir da linha de falta — acabam
 ## em z = -9,8, antes da barra varredora (z = -10) e do fosso
 const N_BUMPERS := 10
+## ALÇAPÃO no chão do fosso: o vão das duas portinhas (scripts/maquina.gd
+## abre depois da varrida e os pinos caem). Embaixo, um POÇO fundo de
+## verdade (o terreno tem um furo ali: tools/modelos/modelos.py, FURO_*),
+## com paredes e fundo que seguram os pinos.
+const ALCAPAO_X := 0.9
+const ALCAPAO_Z0 := -12.0
+const ALCAPAO_Z1 := -13.62
+const POCO_FUNDO := -1.75
 
 const CAMADA_MUNDO := 1
 const CAMADA_PINOS := 2
@@ -49,6 +57,7 @@ var mat_placa: ShaderMaterial
 var mat_divisoria: ShaderMaterial
 var mat_faixa: ShaderMaterial
 var mats_canaleta: Array[ShaderMaterial] = []
+var mat_bumper: ShaderMaterial
 var mat_terreno: ShaderMaterial
 var mat_gabinete: ShaderMaterial
 var mat_parede: ShaderMaterial
@@ -184,8 +193,16 @@ func aplicar_tema(nome: String) -> void:
 	mat_parede.set_shader_parameter("tinta", c["parede"])
 	mat_divisoria.set_shader_parameter("tinta", c["divisoria"])
 	mat_faixa.set_shader_parameter("tinta", c["faixa"])
+	var cc: Array = c["canaleta"]
 	for m in mats_canaleta:
-		m.set_shader_parameter("tinta", c["canaleta"])
+		m.set_shader_parameter("modo", int(c["canaleta_modo"]))
+		m.set_shader_parameter("cor_a", cc[0])
+		m.set_shader_parameter("cor_b", cc[1])
+		m.set_shader_parameter("cor_c", cc[2])
+		m.set_shader_parameter("luz_cena", luz_cena)
+	var bp: Array = c["bumper"]
+	mat_bumper.set_shader_parameter("cor_a", bp[0])
+	mat_bumper.set_shader_parameter("cor_b", bp[1])
 	var chao: Array = c["chao"]
 	mat_terreno.set_shader_parameter("modo", int(c["chao_modo"]))
 	# cores do chão: lineares no leve; no completo, no espaço da conta do
@@ -355,7 +372,7 @@ func _terreno() -> void:
 	var cs := CollisionShape3D.new()
 	cs.shape = WorldBoundaryShape3D.new()
 	chao.add_child(cs)
-	chao.position.y = -0.6
+	chao.position.y = POCO_FUNDO - 0.85   # abaixo do poço do alçapão
 	chao.collision_layer = CAMADA_MUNDO
 	add_child(chao)
 
@@ -451,8 +468,10 @@ func _pista() -> void:
 	var forma_c := malha_c.create_trimesh_shape()
 	for s in [-1, 1]:
 		var x: float = s * (MEIA_LARGURA + CANALETA / 2)
-		var mcan := Materiais.toon(false, 0.0, {"tinta": Color("#8FC4EE"), "borda": 0.18, "faixa": 0.22,
-			"luz_minima": 0.45, "especular": 0.6, "tamanho_especular": 0.95})
+		# o desenho de cada cenário (shaders/canaleta.gdshader; Temas.CONFIG)
+		var mcan := ShaderMaterial.new()
+		mcan.shader = load("res://shaders/canaleta.gdshader")
+		mcan.set_shader_parameter("centro", MEIA_LARGURA + CANALETA / 2)
 		mats_canaleta.append(mcan)
 		var can := MeshInstance3D.new()
 		can.mesh = malha_c
@@ -490,6 +509,7 @@ func _pista() -> void:
 	mb.rings = 3
 	var mat_b := ShaderMaterial.new()
 	mat_b.shader = load("res://shaders/doce_listrado.gdshader")
+	mat_bumper = mat_b
 	if Materiais.contornos_ligados:
 		var contorno_b := ShaderMaterial.new()
 		contorno_b.shader = Materiais.shader(Materiais.CONTORNO)
@@ -554,6 +574,38 @@ func _peca(perfil: PackedVector2Array, z0: float, z1: float, mat: Material, nome
 	return mi
 
 
+## O POÇO embaixo do alçapão: caixa virada do avesso (de cima só aparecem
+## o fundo e as paredes de dentro) com o shader do poço (escurece com a
+## fundura, faixas de luz), mais as paredes e o fundo de colisão — os pinos
+## caem, batem e ficam lá embaixo até a máquina recolher.
+func _poco_do_alcapao() -> void:
+	var x := ALCAPAO_X - 0.003
+	var z0 := ALCAPAO_Z0 - 0.003
+	var z1 := ALCAPAO_Z1 + 0.003
+	var topo := Y_CHAO_FOSSO + 0.0025
+	var mat := ShaderMaterial.new()
+	mat.shader = load("res://shaders/poco.gdshader")
+	mat.set_shader_parameter("y_topo", Y_CHAO_FOSSO)
+	mat.set_shader_parameter("y_fundo", POCO_FUNDO)
+	var poco := MeshInstance3D.new()
+	var pb := BoxMesh.new()
+	pb.size = Vector3(x * 2.0, topo - POCO_FUNDO, z0 - z1)
+	pb.flip_faces = true
+	poco.mesh = pb
+	poco.material_override = mat
+	poco.position = Vector3(0, (topo + POCO_FUNDO) / 2.0, (z0 + z1) / 2.0)
+	poco.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	poco.name = "poco_alcapao"
+	add_child(poco)
+	var alto := (Y_CHAO_FOSSO - 0.04) - POCO_FUNDO
+	var yc := (Y_CHAO_FOSSO - 0.04 + POCO_FUNDO) / 2.0
+	for s in [-1, 1]:
+		_corpo_caixa(Vector3(0.1, alto, z0 - z1 + 0.2), Vector3(s * (x + 0.05), yc, (z0 + z1) / 2.0), 0.5, 0.25)
+	_corpo_caixa(Vector3(x * 2.0 + 0.2, alto, 0.1), Vector3(0, yc, z0 + 0.05), 0.5, 0.25)
+	_corpo_caixa(Vector3(x * 2.0 + 0.2, alto, 0.1), Vector3(0, yc, z1 - 0.05), 0.5, 0.25)
+	_corpo_caixa(Vector3(x * 2.0 + 0.2, 0.2, z0 - z1 + 0.2), Vector3(0, POCO_FUNDO - 0.1, (z0 + z1) / 2.0), 0.6, 0.3)
+
+
 ## A CAÇAPA e o PORTAL no fim da pista: paredes laterais acolchoadas (os
 ## pinos batem e voltam), cortina pregueada nas cores do cenário com um
 ## halo de luz atrás dos pinos, e por fora um gabinete alto (esconde a
@@ -574,8 +626,16 @@ func _fundo_dos_pinos() -> void:
 		# colisão = o próprio desenho (o friso de cima também segura os pinos)
 		_corpo_forma(parede.mesh.create_convex_shape(), Vector3.ZERO, 0.3, 0.35)
 		_corpo_forma(friso.mesh.create_convex_shape(), Vector3.ZERO, 0.3, 0.35)
-	# fosso
-	_caixa(Vector3(2.0, 0.2, -Z_FUNDO + Z_FIM_DECK), Vector3(0, -0.24, (Z_FIM_DECK + Z_FUNDO) / 2), fosso, true, false, 0.9, 0.05)
+	# fosso: o chão EM VOLTA do alçapão (frente, fundo e beiradas; as
+	# portinhas são da máquina de pinos) e o poço escuro embaixo delas
+	var y_f := Y_CHAO_FOSSO - 0.1
+	var meio_z := (ALCAPAO_Z0 + ALCAPAO_Z1) / 2.0
+	var comp := ALCAPAO_Z0 - ALCAPAO_Z1
+	_caixa(Vector3(2.0, 0.2, Z_FIM_DECK - ALCAPAO_Z0), Vector3(0, y_f, (Z_FIM_DECK + ALCAPAO_Z0) / 2), fosso, true, false, 0.9, 0.05)
+	_caixa(Vector3(2.0, 0.2, ALCAPAO_Z1 - Z_FUNDO), Vector3(0, y_f, (ALCAPAO_Z1 + Z_FUNDO) / 2), fosso, true, false, 0.9, 0.05)
+	for s in [-1, 1]:
+		_caixa(Vector3(1.0 - ALCAPAO_X, 0.2, comp), Vector3(s * (1.0 + ALCAPAO_X) / 2.0, y_f, meio_z), fosso, true, false, 0.9, 0.05)
+	_poco_do_alcapao()
 	_cacapa_das_bolas()
 	# cortina pregueada (estrelinhas + halo atrás dos pinos) em cima da boca
 	mat_fundo = ShaderMaterial.new()

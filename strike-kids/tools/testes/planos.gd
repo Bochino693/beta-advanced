@@ -2,7 +2,7 @@ extends Node
 
 ## BANCO DE PLANOS DE CÂMERA (conferir enquadramentos e acabamento).
 ##   godot --path . res://tools/testes/planos.tscn -- --janela=1080x1920 --saida=pasta [--tema=parque]
-##      [--plano=nome:px,py,pz:ax,ay,az:fov_v:fov_h] (pode repetir)
+##      [--plano=nome:px,py,pz:ax,ay,az:fov_v:fov_h] (pode repetir) [--sem-protecao]
 ## Monta o mundo (pista, pinos, cenário, Bob com a bola, Mia torcendo) e
 ## tira uma foto por plano, com a mesma abertura responsiva do jogo.
 ## Sem --plano: uma lista padrão (espera da jogada, canaletas, caçapa,
@@ -42,6 +42,8 @@ func _ready() -> void:
 	mundo.construir()
 	mundo.aplicar_qualidade("alta")
 	mundo.aplicar_tema(tema)
+	if OS.get_cmdline_user_args().has("--sem-protecao"):
+		mundo.definir_protecao(false)
 	var pinos := Pinos.new()
 	add_child(pinos)
 	pinos.montar()

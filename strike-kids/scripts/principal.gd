@@ -69,6 +69,9 @@ var _lenta: Tween
 ## passos da física por segundo (o do project.godot, lido ao abrir); a câmera
 ## lenta só diminui quantos passos acontecem por segundo, nunca o tamanho
 var _passos_fisica := 120
+## VELOCIDADE DO JOGO (menu do operador): 1,3 = tudo 30% mais rápido que o
+## tempo real — bola, pinos, bichinhos, câmera e as esperas entre as jogadas
+var _velocidade := 1.0
 var _escolha_n := 1
 var _escolha_t := 0.0
 var _destaque := 0
@@ -126,6 +129,8 @@ const FATOR_MIN := 0.7
 func _ready() -> void:
 	randomize()
 	_passos_fisica = int(ProjectSettings.get_setting("physics/common/physics_ticks_per_second", 120))
+	_velocidade = Ajustes.velocidade()
+	_ritmo(1.0)
 	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 	_qualidade = _qualidade_escolhida()
 	Materiais.contornos_ligados = _qualidade != "baixa"
@@ -256,6 +261,7 @@ func _montar_3d() -> void:
 	vp.add_child(maquina)
 	maquina.montar(pinos)
 	maquina.som.connect(_som_maquina)
+	maquina.alcapao.connect(_alcapao_maquina)
 	bola = Bola.new()
 	vp.add_child(bola)
 	bola.guardar()
@@ -723,12 +729,12 @@ func _sessao_de_fotos(lista: Array) -> bool:
 		a.tocar("acenar", 0.2, true)
 		hud.foto_tela(true, Fotos.ao_vivo(), p, "SORRIA!", sub)
 		Sons.tocar("vez")
-		if not await _esperar(1.9, s, false):
+		if not await _esperar(1.9, s, false, false):
 			return false
 		for n in [3, 2, 1]:
 			hud.foto_contagem(n)
 			Sons.tocar("tique", 0.9, 1.0 + (3 - n) * 0.15)
-			if not await _esperar(0.85, s, false):
+			if not await _esperar(0.85, s, false, false):
 				return false
 		hud.foto_contagem(0)
 		hud.flash(Color.WHITE, 0.95, 0.45)
@@ -982,29 +988,31 @@ func _bola_recolhida() -> void:
 
 func _process(delta: float) -> void:
 	_medir_fps(delta)
+	# as contagens da tela andam em segundos de verdade
+	var real := _delta_real()
 	# PC em tela cheia: a setinha do mouse some sozinha quando ninguém mexe
-	_mouse_parado += delta
+	_mouse_parado += real
 	if _mouse_parado > 2.5 and Input.mouse_mode == Input.MOUSE_MODE_VISIBLE:
 		Input.mouse_mode = Input.MOUSE_MODE_HIDDEN
 	match estado:
 		E.ROLANDO:
 			_rolando(delta)
 		E.PRONTO:
-			_contar_inatividade(delta)
+			_contar_inatividade(real)
 		E.JOGADORES:
-			_escolha_t -= delta
+			_escolha_t -= real
 			hud.jogadores(true, _escolha_n, _escolha_t / TEMPO_JOGADORES, int(ceil(_escolha_t)))
 			if _escolha_t <= 0.0:
 				_confirmar_jogadores()
 		E.PERSONAGEM:
-			_escolha_t -= delta
+			_escolha_t -= real
 			hud.selecao(true, _destaque, "ROLE A BOLA PARA ESCOLHER SEU AMIGO\nbola no MEIO ou START confirma   (%d)" % int(ceil(_escolha_t)), _pes_na_tela())
 			if _escolha_t <= 0.0:
 				_confirmar_personagem()
 		E.ATRACAO:
-			_demo_t += delta
+			_demo_t += real
 			# a câmera (permissão, webcam ligada depois) é conferida aqui, na espera
-			_camera_t += delta
+			_camera_t += real
 			if _camera_t > 6.0:
 				_camera_t = 0.0
 				Fotos.na_espera()
@@ -1012,7 +1020,7 @@ func _process(delta: float) -> void:
 				_demo_t = 0.0
 				_jogada_demo()
 		E.FIM:
-			_fim_t += delta
+			_fim_t += real
 			var resta := int(ceil(16.0 - _fim_t))
 			hud.fim_contagem(max(resta, 0))
 			if _fim_t > 16.0:
@@ -1070,21 +1078,24 @@ func _impacto(b: Vector3) -> void:
 
 
 ## Câmera lenta que ENTRA e SAI suave (sem tranco de velocidade): desce
-## até `escala` em 0,08 s, segura e volta ao normal em 0,3 s.
+## até `escala` em 0,08 s, segura e volta ao normal em 0,3 s (a duração
+## encurta junto com a velocidade do jogo).
 func _camera_lenta(escala: float, dur_real: float) -> void:
 	_parar_lenta()
 	_lenta = create_tween().set_ignore_time_scale(true)
 	_lenta.tween_method(_ritmo, 1.0, escala, 0.08).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
-	_lenta.tween_interval(maxf(dur_real - 0.08, 0.0))
+	_lenta.tween_interval(maxf(dur_real / _velocidade - 0.08, 0.0))
 	_lenta.tween_method(_ritmo, escala, 1.0, 0.3).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN)
 
 
 ## Ritmo do tempo SEM mudar a física: o passo da física continua sempre de
-## 1/120 s (o mesmo da calibração das jogadas — o resultado não muda);
-## na câmera lenta ela só dá MENOS passos por segundo (0,4 = 48 por
-## segundo) e a interpolação deixa a imagem lisa.
+## 1/120 s (o mesmo da calibração das jogadas — o resultado não muda). O
+## jogo mais rápido (velocidade 1,3) dá MAIS passos por segundo (156); a
+## câmera lenta dá MENOS (0,4 = 62 por segundo) e a interpolação deixa a
+## imagem lisa.
 func _ritmo(v: float) -> void:
-	var passos := clampi(int(round(float(_passos_fisica) * v)), 12, _passos_fisica)
+	var normal := float(_passos_fisica) * _velocidade
+	var passos := clampi(int(round(normal * v)), 12, int(round(normal)))
 	Engine.physics_ticks_per_second = passos
 	Engine.time_scale = float(passos) / float(_passos_fisica)
 
@@ -1253,6 +1264,19 @@ func _finalizar_jogada() -> void:
 func _plano_maquina() -> void:
 	cam.corte(Vector3(0.55, 0.62, Mundo.Z_PINO1 + 2.5), Vector3(0, 0.5, Mundo.Z_PINO1 - 0.45), 40, 40)
 	cam.ir(Vector3(-0.35, 0.72, Mundo.Z_PINO1 + 2.2), Vector3(0, 0.5, Mundo.Z_PINO1 - 0.45), 40, 40, 0.4)
+
+
+## O ALÇAPÃO do fosso: corta para o fosso visto de cima (por cima da parede
+## da direita, atrás da mesa) enquanto os pinos caem; depois volta para a
+## mesa repondo os pinos.
+func _alcapao_maquina(abrindo: bool) -> void:
+	if estado != E.RESULTADO:
+		return
+	if abrindo:
+		cam.corte(Vector3(0.98, 1.08, Mundo.ALCAPAO_Z0 - 0.15), Vector3(-0.12, -0.45, Mundo.ALCAPAO_Z1 + 0.75), 56, 56)
+		cam.ir(Vector3(0.9, 1.0, Mundo.ALCAPAO_Z0 - 0.25), Vector3(-0.1, -0.55, Mundo.ALCAPAO_Z1 + 0.8), 56, 56, 1.0)
+	else:
+		_plano_maquina()
 
 
 # ================================================================ replay
@@ -1567,6 +1591,9 @@ func _som_maquina(nome: String) -> void:
 			Sons.tocar("pop", 0.4, 0.9)
 		"barra":
 			Sons.tocar("tique", 0.35, 0.7)
+		"alcapao":
+			Sons.tocar("tique", 0.4, 0.5)
+			Sons.tocar("pinos_queda", 0.22, 0.72)
 
 
 func _som_personagem(nome: String) -> void:
@@ -1592,6 +1619,9 @@ func abrir_menu(cena: PackedScene) -> void:
 	else:
 		_novo_seq()           # o que estava acontecendo para (demo, jogada, replay...)
 		_parar_lenta()
+		# o menu anda no tempo de verdade
+		Engine.time_scale = 1.0
+		Engine.physics_ticks_per_second = _passos_fisica
 		Sons.rolando(false)
 		_gravando = false
 		estado = E.OPERADOR
@@ -1625,6 +1655,8 @@ func fechar_menu() -> void:
 	get_tree().paused = false
 	_fps_t0 = 0
 	# ajustes que valem na hora
+	_velocidade = Ajustes.velocidade()
+	_ritmo(1.0)
 	var q := _qualidade_escolhida()
 	if q != _qualidade:
 		_qualidade = q
@@ -1743,21 +1775,29 @@ func pode_configurar() -> bool:
 	return estado == E.ATRACAO or estado == E.ABERTURA
 
 
+## O tempo do último quadro em segundos de verdade (sem a velocidade do
+## jogo nem a câmera lenta): para as contagens que a criança vê na tela.
+func _delta_real() -> float:
+	return get_process_delta_time() / maxf(Engine.time_scale, 0.01)
+
+
 func _novo_seq() -> int:
 	_seq += 1
 	_pular = false
 	return _seq
 
 
-## Espera `t` segundos (de tela, mesmo em câmera lenta); volta false se a
-## sequência foi cancelada. pulavel: um sensor acionado encurta a espera.
-func _esperar(t: float, s: int, pulavel := true) -> bool:
+## Espera `t` segundos (de tela, mesmo em câmera lenta, encurtados pela
+## velocidade do jogo); volta false se a sequência foi cancelada. pulavel:
+## um sensor acionado encurta a espera. acelera false: segundos de verdade
+## (a contagem da foto, para a criança se arrumar).
+func _esperar(t: float, s: int, pulavel := true, acelera := true) -> bool:
 	var passou := 0.0
 	while passou < t:
 		await get_tree().process_frame
 		if s != _seq:
 			return false
-		passou += get_process_delta_time() / maxf(Engine.time_scale, 0.01)
+		passou += _delta_real() * (_velocidade if acelera else 1.0)
 		if pulavel and _pular:
 			_pular = false
 			break

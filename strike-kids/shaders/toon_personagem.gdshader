@@ -16,6 +16,8 @@ uniform float especular : hint_range(0.0, 2.0) = 0.0;
 uniform float tamanho_especular : hint_range(0.5, 0.999) = 0.92;
 uniform vec3 emissao : source_color = vec3(0.0);
 uniform float flash : hint_range(0.0, 1.0) = 0.0;
+// escurece tudo (o pino caindo no poço do alçapão: some no escuro lá embaixo)
+uniform float escuro : hint_range(0.0, 1.0) = 1.0;
 // partes que brilham (alfa do vértice = 0.5): núcleo do peito, antena, orelhas
 uniform float brilho_luz : hint_range(0.0, 4.0) = 1.4;
 
@@ -139,13 +141,13 @@ void fragment() {
 		base = mix(base, cor, m);
 		base = mix(base, cor * 0.72, filete * 0.6);
 	}
-	ALBEDO = base;
+	ALBEDO = base * escuro;
 	ROUGHNESS = 1.0;
 	SPECULAR = 0.0;
 	float rim = pow(1.0 - clamp(dot(NORMAL, VIEW), 0.0, 1.0), 3.0);
 	float luz = 1.0 - clamp(abs(COLOR.a - 0.5) * 5.0, 0.0, 1.0);
-	EMISSION = cor_brilho * rim * base + cor_emissao + vec3(flash) * base
-		+ base * luz * brilho_luz;
+	EMISSION = (cor_brilho * rim * base + cor_emissao + vec3(flash) * base
+		+ base * luz * brilho_luz) * escuro;
 }
 
 void light() {

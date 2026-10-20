@@ -6,10 +6,10 @@ extends Node
 ##   godot --path . --fixed-fps 30 res://tools/testes/bracos.tscn -- --janela=1200x900 saida.png bob pronto,acenar 0.3,0.8,1.3
 ## Com roupinha de fase: bob:pirata, mia:dino, bob:astronauta, mia:parque...
 ## --perto: a cabeça de perto (rosto, chapéu, capuz). --costas: de costas
-## (como na hora do arremesso).
+## (como na hora do arremesso). --grande: fotos com o dobro do tamanho.
 
-const LARG := 340
-const ALT := 430
+var LARG := 340
+var ALT := 430
 var saida := "user://bracos.png"
 var quem := "bob"
 var roupa := ""
@@ -27,6 +27,9 @@ var _t := 0.0
 
 
 func _ready() -> void:
+	if OS.get_cmdline_user_args().has("--grande"):
+		LARG *= 2
+		ALT *= 2
 	var a := Array(OS.get_cmdline_user_args()).filter(func(x): return not str(x).begins_with("--"))
 	if a.size() > 0:
 		saida = a[0]

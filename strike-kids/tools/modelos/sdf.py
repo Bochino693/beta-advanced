@@ -317,6 +317,10 @@ class Intersecao(Forma):
 
     def dc(self, P):
         da, ca = self.a.dc(P)
+        if isinstance(self.b, SemiEspaco):
+            # o corte de um plano fica com a cor da PEÇA (o plano não tem cor:
+            # sem isto a barra da bandana, a sola e a aba saíam cor de pelo)
+            return smax(da, self.b.d(P), self.k), ca
         db, cb = self.b.dc(P)
         return smax(da, db, self.k), np.where(da >= db, ca, cb)
 

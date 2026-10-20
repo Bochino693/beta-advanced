@@ -289,10 +289,17 @@ def gerar_cenario():
 # TERRENO (malha de altura: gramado com morros nas laterais)
 # ===================================================================
 
+# o POÇO do alçapão (embaixo do fosso, atrás dos pinos: scripts/mundo.gd,
+# ALCAPAO_*): o terreno tem um furo ali, com a grade alinhada nas beiradas
+# (o furo fica escondido embaixo do chão do fosso e das paredes da caçapa)
+FURO_X = (-0.95, 0.95)
+FURO_Z = (-13.66, -11.98)
+
+
 def gerar_terreno():
-    nx, nz = 90, 110
-    xs = np.linspace(-34, 34, nx)
-    zs = np.linspace(-70, 18, nz)
+    xs = np.unique(np.concatenate([np.linspace(-34, 34, 90), FURO_X]))
+    zs = np.unique(np.concatenate([np.linspace(-70, 18, 110), FURO_Z]))
+    nx, nz = len(xs), len(zs)
     X, Z = np.meshgrid(xs, zs, indexing='ij')
     H = np.zeros_like(X)
     rng = np.random.default_rng(11)
@@ -320,6 +327,13 @@ def gerar_terreno():
     b = idx[1:, :-1].reshape(-1)
     c = idx[1:, 1:].reshape(-1)
     d = idx[:-1, 1:].reshape(-1)
+    # tira as casas da grade que ficam dentro do furo do poço
+    x0 = np.repeat(xs[:-1], nz - 1)
+    x1 = np.repeat(xs[1:], nz - 1)
+    z0 = np.tile(zs[:-1], nx - 1)
+    z1 = np.tile(zs[1:], nx - 1)
+    fica = ~((x0 >= FURO_X[0] - 1e-6) & (x1 <= FURO_X[1] + 1e-6) & (z0 >= FURO_Z[0] - 1e-6) & (z1 <= FURO_Z[1] + 1e-6))
+    a, b, c, d = a[fica], b[fica], c[fica], d[fica]
     T = np.concatenate([np.stack([a, b, c], -1), np.stack([a, c, d], -1)])
     # orientação: normal para cima
     e1 = V[T[:, 1]] - V[T[:, 0]]

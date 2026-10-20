@@ -27,6 +27,7 @@ var _pulo: Tween
 var _base_pulo := Transform3D()
 var _pulando := false
 var _raiva: Tween
+var _escuro := 1.0      # 1 = normal; menor = caindo no poço do alçapão
 
 
 func montar(n: int, pos: Vector3, malha_pino: Mesh, forma: Shape3D, rosto: Texture2D, meta: Dictionary) -> void:
@@ -99,6 +100,7 @@ func recolocar() -> void:
 	collision_mask = Mundo.CAMADA_MUNDO | Mundo.CAMADA_PINOS | Mundo.CAMADA_BOLA | Mundo.CAMADA_PISO_PINOS | Mundo.CAMADA_SO_PINOS
 	malha.scale = Vector3.ONE
 	_estrelas.visible = false
+	_escurecer(1.0)
 	expressao("normal")
 	if is_inside_tree():
 		reset_physics_interpolation()
@@ -148,6 +150,13 @@ func expressao(nome: String) -> void:
 	_celula(nome)
 
 
+func _escurecer(k: float) -> void:
+	if absf(k - _escuro) < 0.01 and (k < 1.0 or _escuro == 1.0):
+		return
+	_escuro = k
+	mat.set_shader_parameter("escuro", k)
+
+
 func _celula(nome: String) -> void:
 	var i := EXPR.find(nome)
 	mat.set_shader_parameter("rosto_celula", Vector2(i % 4, i / 4))
@@ -156,6 +165,10 @@ func _celula(nome: String) -> void:
 func _process(delta: float) -> void:
 	if not visible:
 		return
+	# caindo no poço do alçapão: escurece com a fundura (lá embaixo é escuro)
+	var y := global_position.y
+	if y < Mundo.Y_CHAO_FOSSO - 0.05 or _escuro < 1.0:
+		_escurecer(clampf(1.0 + (y - Mundo.Y_CHAO_FOSSO + 0.05) * 0.75, 0.1, 1.0))
 	# tontura: estrelinhas girando em volta da cabeça
 	if _estrelas.visible:
 		var topo := global_transform * Vector3(0, 0.42, 0)

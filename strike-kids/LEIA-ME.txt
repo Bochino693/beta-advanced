@@ -34,6 +34,23 @@ meio-direita, direita) vira a jogada na tela, em 3D:
     pe e devolve cada um no lugar; na rodada nova a mesa desce com os 10
     pinos novinhos. Os para-choques acabam antes da maquina (como num
     boliche de verdade): a barra desce e varre sem encostar neles.
+  * ALCAPAO NO FOSSO: depois da varrida (com a bola ja recolhida) a camera
+    olha o fosso de cima, as duas portinhas do chao abrem para baixo e os
+    pinos CAEM COM A FISICA num POCO FUNDO de verdade (paredes com faixas
+    de luz que dao a perspectiva da queda; os pinos escurecem conforme
+    descem). As portinhas fecham e a mesa traz os pinos. Na hora da jogada
+    o chao fica sempre fechado (a fisica da jogada e a mesma).
+  * RITMO MAIS RAPIDO: o jogo todo anda 30% mais rapido que o tempo real
+    (bola, pinos, bichinhos, camera e as esperas) - sem mudar a fisica
+    calibrada (o passo da fisica e sempre o mesmo, so acontecem mais passos
+    por segundo). Ajustavel no menu ("Velocidade do jogo", 100% a 160%).
+    As contagens que a crianca ve (escolha, foto 3-2-1, fim) continuam em
+    segundos de verdade.
+  * CANALETA DE CADA CENARIO: a mesma calha (e a mesma colisao) com o
+    desenho da fase - listras de doce no Parque, metal de nave com luzes
+    correndo ate os pinos no Espaco, agua com reflexos e bolhinhas no Fundo
+    do Mar, bambu com nos na Selva dos Dinos - e os para-choques com as
+    cores de cada fase. Shader leve (sem textura, sem conta de luz).
   * 4 CENARIOS SORTEADOS: cada rodada cai numa fase sorteada (Parque de
     Diversoes, Viagem ao Espaco, Fundo do Mar, Selva dos Dinos) - todas
     aparecem antes de alguma se repetir, e nunca a mesma em duas rodadas
@@ -44,7 +61,11 @@ meio-direita, direita) vira a jogada na tela, em 3D:
     na Selva dos Dinos vestem DINOSSAURINHO (capuz com dentinhos, olhinhos
     e espinhos, barriga em relevo, garrinhas e rabo de dino); no Espaco
     sao ASTRONAUTAS (capacete com antena que brilha, mochila, painel no
-    peito, luvas e botas); no Parque usam BONE DE HELICE (a helice gira).
+    peito, luvas e botas); no Parque usam BONE DE HELICE (a helice gira),
+    meia com elastico e tenis/sapatinho. A Mia pirata tem blusa de manga
+    comprida com punho vermelho e meia-calca listrada. Nenhum "cinza" na
+    roupa: a beirada de baixo da bandana, do bone, da saia e as solas
+    saiam com a cor do pelo (cinza na Mia) - agora tem a cor da peca.
     O rostinho fica SEMPRE de fora (capuz e capacete so emolduram o rosto).
     Na tela inicial, na escolha e na foto: a roupa de sempre. Cada roupinha
     carrega em segundo plano antes da fase e sai da memoria depois - a
@@ -388,6 +409,7 @@ tela de em pe para deitada (giro 0).
 
   Rodadas por jogador (1-10, padrao 3)     Bolas por rodada (1-3, padrao 3)
   Dificuldade: facil / normal / dificil    Para-choques nas canaletas
+  Velocidade do jogo: 100% (tempo real), 115%, 130% (padrao), 145%, 160%
   Replay do strike                         Demonstracao na tela inicial
   Modo livre ou fichas por partida         Tempo sem jogar ate o aviso
   Volume da musica e dos efeitos           Som na demonstracao

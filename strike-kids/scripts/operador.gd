@@ -22,6 +22,7 @@ const ITENS := [
 	["Rodadas por jogador", "jogo", "rodadas", "int", [1, 10]],
 	["Bolas por rodada", "jogo", "tentativas", "int", [1, 3]],
 	["Dificuldade", "jogo", "dificuldade", "lista", ["facil", "normal", "dificil"]],
+	["Velocidade do jogo", "jogo", "velocidade", "lista", [100, 115, 130, 145, 160]],
 	["Para-choques nas canaletas", "jogo", "protecao_canaleta", "bool", []],
 	["Replay do strike", "jogo", "replay_strike", "bool", []],
 	["Demonstração na tela inicial", "jogo", "demo", "bool", []],
@@ -53,7 +54,8 @@ const ITENS := [
 ]
 const NOMES := {"facil": "FÁCIL", "normal": "NORMAL", "dificil": "DIFÍCIL", "auto": "AUTOMÁTICA", "alta": "ALTA",
 	"media": "MÉDIA", "baixa": "BAIXA", "leve": "LEVE (TV Box)", "completo": "COMPLETO", 1: "1 (topo à esquerda)", -1: "-1 (topo à direita)", 0: "0 (sem giro)",
-	90: "90°", 180: "180°", 270: "270°"}
+	90: "90°", 180: "180°", 270: "270°", 100: "100% (tempo real)", 115: "115%", 130: "130% (padrão)", 145: "145%",
+	160: "160%"}
 
 var _sel := 0
 var _linhas: Array[Label] = []

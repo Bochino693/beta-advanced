@@ -17,6 +17,7 @@ const PADRAO := {
 		"rodadas": 3,            # rodadas por jogador
 		"tentativas": 3,         # bolas por rodada (como no Dragon Bowling)
 		"dificuldade": "facil",
+		"velocidade": 130,       # ritmo do jogo (%): 130 = tudo 30% mais rápido (a física das jogadas não muda)
 		"protecao_canaleta": true,  # para-choques nas canaletas (bumpers)
 		"replay_strike": true,
 		"modo_livre": true,      # sem crédito: START sempre começa
@@ -122,6 +123,11 @@ func restaurar_padrao() -> void:
 # ---------------------------------------------------------------- atalhos
 func rodadas() -> int:
 	return clampi(int(valor("jogo", "rodadas")), 1, 10)
+
+
+## Ritmo do jogo: 1,0 = tempo real; 1,3 = tudo 30% mais rápido.
+func velocidade() -> float:
+	return clampf(float(valor("jogo", "velocidade")) / 100.0, 0.5, 2.0)
 
 
 ## CENÁRIO (fundo) LEVE: chão e decoração mais simples e sem neblina, para a

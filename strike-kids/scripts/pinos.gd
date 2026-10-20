@@ -73,6 +73,9 @@ func _process(_d: float) -> void:
 		var giro := atan2(eixo.x, eixo.z)
 		b = Basis(Vector3.UP, giro) * b
 		var chao := 0.004 if absf(g.x) < Mundo.MEIA_LARGURA and g.z > Mundo.Z_FIM_DECK else -0.2
+		if chao < 0.0:
+			# fora da pista não tem sombra (nem aparece no alçapão aberto)
+			b = Basis().scaled(Vector3.ZERO)
 		# perto da borda a sombra encolhe: o adesivo reto não sai da pista
 		# (nem fica boiando por cima da canaleta)
 		if chao > 0.0:
