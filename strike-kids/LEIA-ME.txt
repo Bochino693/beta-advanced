@@ -1,0 +1,631 @@
+STRIKE KIDS - BOLICHE INFANTIL 3D (Bob & Mia)
+=============================================
+VERSAO ALTA (avancada): cenario COMPLETO - para a TV Box TX9 e TV Boxes
+mais fortes. A versao LEVE (TV Box SmartPro) esta no GitHub "beta".
+Godot 4.6.1 - renderizador Compatibility (OpenGL ES 3) - fisica Jolt
+TV Box Android (Proeletronic SmartPro 4K, 2 GB; ou a Pro Ultra do Dragon
+Bowling), ARDUINO (5 sensores, porta das bolas, botao de configuracao e
+LEDs), camera USB (Sigma) e, se quiser, a placa Zero Delay.
+
+
+O QUE E
+-------
+Boliche infantil para maquina de 5 sensores. A crianca rola a bola de
+verdade; o sensor que a bola acionar (esquerda, meio-esquerda, centro,
+meio-direita, direita) vira a jogada na tela, em 3D:
+
+  * O mascote da vez (BOB, o cachorrinho, ou MIA, a gatinha) faz a
+    passada de boliche, balanca o braco e solta a bola na linha do sensor.
+  * A camera segue a bola, vai para os pinos (que fazem cara de medo!) e
+    mostra a queda com FISICA DE VERDADE: a bola bate, os pinos voam, um
+    derruba o outro, batem nas paredes e voltam. Nada e empurrado de
+    mentira.
+  * STRIKE tem camera lenta e REPLAY: a MESMA jogada (cada passo da
+    fisica fica gravado), em camera lenta lisinha - camera colada na
+    bola, corte de lado na batida e a explosao de pinos -, com o rastro
+    de arco-iris e o barulho da bola mais grave. Depois o mascote
+    comemora com um pulo girando e uma chuva de estrelas.
+  * CACAPA DAS BOLAS: depois dos pinos a bola cai no fosso, a esteira leva
+    ate a boca da cacapa (cortina de tiras de borracha que balancam quando
+    ela passa) e, logo depois, ela volta rolando no RETORNO DE BOLAS, ao
+    lado de quem joga.
+  * A MAQUINA DE PINOS trabalha como num boliche de verdade: a barra desce
+    e varre os pinos caidos para o fosso, a mesa levanta os que ficaram em
+    pe e devolve cada um no lugar; na rodada nova a mesa desce com os 10
+    pinos novinhos. Os para-choques acabam antes da maquina (como num
+    boliche de verdade): a barra desce e varre sem encostar neles.
+  * 4 CENARIOS SORTEADOS: cada rodada cai numa fase sorteada (Parque de
+    Diversoes, Viagem ao Espaco, Fundo do Mar, Selva dos Dinos) - todas
+    aparecem antes de alguma se repetir, e nunca a mesma em duas rodadas
+    seguidas. A tela inicial vai mostrando as 4.
+  * ROUPINHA DE CADA FASE (pecas 3D de verdade, com volume): no Fundo do
+    Mar o Bob e a Mia viram PIRATAS (chapeu com caveirinha / bandana de
+    bolinhas, camiseta listrada, cinto com fivela, botas de cano dobrado);
+    na Selva dos Dinos vestem DINOSSAURINHO (capuz com dentinhos, olhinhos
+    e espinhos, barriga em relevo, garrinhas e rabo de dino); no Espaco
+    sao ASTRONAUTAS (capacete com antena que brilha, mochila, painel no
+    peito, luvas e botas); no Parque usam BONE DE HELICE (a helice gira).
+    O rostinho fica SEMPRE de fora (capuz e capacete so emolduram o rosto).
+    Na tela inicial, na escolha e na foto: a roupa de sempre. Cada roupinha
+    carrega em segundo plano antes da fase e sai da memoria depois - a
+    troca acontece escondida no clarao da fase nova, sem travar.
+  * SOL E LUA COM ROSTINHO no ceu (sol no Parque, na Selva e no Mar; lua
+    no Espaco): sorrindo e piscando, e os raios do sol girando devagar.
+    Custo quase zero (um quadradinho desenhado de uma vez).
+  * FISICA SEM SOBREPOSICAO: nada atravessa nada. A canaleta colide com a
+    propria meia-cana do desenho (a bola corre dentro da calha, apoiada
+    nas bordas, e os pinos param la dentro); as divisorias e as paredes do
+    fosso colidem com o proprio desenho; o rastro de arco-iris e as
+    sombras ficam so na pista (nao cortam a canaleta).
+  * O SIMBOLO DA LAZER & SPORT, discreto, em todo cenario (no mesmo lugar,
+    flutuando ao lado da pista): o balaozinho no Parque, o planetinha com
+    anel no Espaco, a bolha no Fundo do Mar e o pterossauro segurando a
+    plaquinha de madeira na Selva dos Dinos.
+  * BRACOS DOS BICHINHOS: a cabeca e grande e os bracos sao curtinhos;
+    por isso toda mao levantada vai pelo LADO da cabeca (o "tchau", os
+    socos no ar, a festa) e as maos ficam nas bochechas no "quase" - antes
+    a mao do tchau sumia atras da cabeca e os bracos pareciam cortados.
+  * 2 ou mais strikes seguidos: "PEGANDO FOGO!" e a bola vira bola de fogo.
+  * FOTO DA CRIANCA: com a camera da maquina ligada, no comeco da partida
+    cada jogador tira uma foto ("SORRIA!" 3, 2, 1). O rostinho aparece no
+    placar, na faixa "VEZ DO BOB", no strike e na CLASSIFICACAO.
+  * CLASSIFICACAO DE HOJE: no fim da partida cada jogador ve a sua foto
+    grande, os pontos, as estrelas e em que lugar ficou no dia ("2o LUGAR
+    HOJE!"), e o quadro com os 5 melhores do dia, cada um com a sua foto
+    (sem camera: o mascote com que jogou). A tela inicial mostra os 3
+    melhores de hoje com as fotos. Vira sozinha a cada dia.
+
+Na tela NAO tem setas nem alvo: a mira e sempre o STRIKE.
+
+COMO SE JOGA (tudo pela placa Zero Delay)
+  1. START: aparece "QUANTOS VAO JOGAR?". START 1 vez = 1 jogador;
+     START de novo (em 4 segundos) = 2 jogadores (Bob x Mia).
+  2. 1 jogador: ESCOLHA SEU AMIGO. Rolar a bola pela ESQUERDA = Bob,
+     pela DIREITA = Mia; bola no MEIO ou START confirma (ou espera 8 s).
+  3. SORRIA! (se tiver camera): foto de cada jogador.
+  4. Na vez de jogar (inclusive no comeco de cada vez e no passeio pelo
+     cenario novo) a tela mostra so a PISTA DE FRENTE esperando a bola.
+     So quando a bola passa no sensor aparece o mascote arremessando, e a
+     bola vai pela linha daquele sensor ate os pinos.
+  No alto das telas de preparacao aparece em que passo esta
+  (1 JOGADORES > 2 AMIGO > 3 FOTO > 4 JOGAR).
+
+ABERTURA LAZER & SPORT GAMES (ao ligar): faixas de cinema, a bola com o
+alvo da Lazer & Sport rola pela pista com a camera colada nela, faz
+STRIKE em camera lenta e, sobre a explosao dos pinos, a marca LAZER &
+SPORT GAMES "estoura" na tela com estrelinhas ("apresenta"); depois a
+camera voa pelo cenario ate a tela inicial com o Bob e a Mia.
+Fora a abertura, a marca aparece so num BALAOZINHO (uns 60 cm), sem
+fundo, que flutua ao lado da pista no cenario do Parque de Diversoes.
+
+FUNDO DA PISTA: um PORTAL de parque nas cores de cada cenario - arco de
+raios coloridos com lampadas, letreiro STRIKE KIDS, colunas iluminadas e
+a cortina com um halo de luz atras dos pinos. Atras de quem joga: mureta
+nas cores do cenario, o letreiro em dois postes e o proprio cenario
+(parque, fundo do mar, espaco, selva) aparecendo por cima.
+O GERAR_APK.bat escolhe a imagem de inicializacao ja girada conforme o
+-Giro (1, -1 ou 0).
+
+VISUAL: tema unissex e esportivo (azul-marinho, azul, laranja, amarelo e
+vermelho). As telas usam placas com volume (brilho, lateral e sombra),
+combinando com o 3D; na escolha do amigo, Bob e Mia ficam em podios.
+
+1 jogador (escolhe o Bob ou a Mia) ou 2 jogadores (Bob x Mia, vezes
+alternadas). Placar com pontos (10 por pino, +50 strike, +20 spare),
+estrelas no fim, recorde gravado na TV Box.
+
+
+COMO TESTAR NO PC
+-----------------
+0. O jogo vem num ZIP so (os modelos 3D ficaram leves). Extraia tudo
+   numa pasta (se tiver uma versao antiga em 2 partes, apague-a antes).
+1. Instale o Godot 4.6.1 (o mesmo do Dragon Bowling Pro Ultra).
+2. Abra o project.godot desta pasta e aperte F5.
+   - Sensores: A S D F G  (esquerda ... direita)
+   - START: 1 ou Espaco    - Credito: 5    - Configuracao/operador: 9
+   - Tambem da para CLICAR/TOCAR na tela: a tela e dividida em 5 faixas
+     (da esquerda para a direita), cada faixa vale um sensor.
+   - Sem webcam no PC: rode com -- --camera-falsa para ver a tela da foto.
+3. O jogo abre em TELA CHEIA (nada de janela; a setinha do mouse some
+   sozinha). Para testar numa janela em pe, como o monitor da maquina:
+     godot --path . -- --janela=540x960
+   O jogo se adapta a qualquer tela: em pe ou deitada.
+   ATENCAO: o Godot 4.6 pode abrir o jogo DENTRO do editor (aba "Game"),
+   pequeno e menos nitido. Para ver em tela cheia e nitido: na aba Game,
+   no menu de opcoes, desmarque "Embed Game on Next Play" - ou use a
+   versao Windows pronta (StrikeKids.exe), que e a mais fiel.
+
+
+VERSAO WINDOWS PRONTA (StrikeKids.exe) - para testar no PC
+----------------------------------------------------------
+Vem em 2 pedacos (StrikeKids_v5.0_Windows.zip.001 e .002, ate 30 MB
+cada). Junte e extraia assim:
+  * com o 7-Zip ou o WinRAR: clique com o direito no .001 > Extrair;
+  * sem programa: deixe os 2 pedacos e o JUNTAR_StrikeKids_Windows.bat
+    na mesma pasta, de 2 cliques nele (ele cria o
+    StrikeKids_v5.0_Windows.zip) e extraia o zip normal.
+Depois e so abrir o StrikeKids.exe (tela cheia; Alt+F4 fecha).
+  - F3 liga/desliga o painel de desempenho (QPS).
+  - Numa janela em pe:  StrikeKids.exe -- --janela=540x960
+  - Ja com o painel:    StrikeKids.exe -- --medidor
+  - Camera USB no PC: coloque o ffmpeg.exe na mesma pasta do jogo.
+IMPORTANTE para medir: o .exe e a versao "de verdade" (release). Rodar
+pelo editor do Godot (F5) e sempre mais pesado (modo de depuracao e o
+proprio editor aberto) - para saber se o PC roda liso, use o .exe.
+
+
+APK PRONTO PARA A TV BOX (sem precisar gerar)
+---------------------------------------------
+Vem em 3 pedacos (StrikeKids_v5.0_TVBox_APK.zip.001, .002 e .003, ate
+30 MB cada). Junte com o 7-Zip/WinRAR (direito no .001 > Extrair) ou
+deixe os 3 pedacos e o JUNTAR_StrikeKids_APK_TVBox.bat na mesma pasta e
+de 2 cliques nele: sai o StrikeKids_v5.0_TVBox.apk. Copie para um
+pendrive e instale na TV Box pelo gerenciador de arquivos (ou
+adb install -r StrikeKids_v5.0_TVBox.apk).
+  - JA VEM COM O ARDUINO (plugin StrikeSerial): os 5 sensores, a porta
+    das bolas, o botao de configuracao e os LEDs (ver "ARDUINO DA
+    MAQUINA"). Grave o arduino/strike_kids no Arduino antes.
+  - JA VEM COM A CAMERA (plugin StrikeCamera): camera do sistema e
+    Camera2, o jeito que a maioria das TV Box mostra a webcam USB. A UVC
+    direta (libuvc, para TV Box que nao mostra a webcam como camera) so
+    vem no APK feito pelo GERAR_APK.bat.
+  - Assinado com a chave do projeto: instala por cima do anterior.
+  - Na 1a vez o Android pergunta da CAMERA (Permitir) e do Arduino no USB
+    (marque "Usar por padrao" e OK).
+
+
+COMO GERAR O APK
+----------------
+1) Extraia o ZIP inteiro (nao rode de dentro do ZIP).
+2) Duplo clique em GERAR_APK.bat, dentro da pasta strike-kids.
+3) Espere ate aparecer "APK GERADO COM SUCESSO". O APK fica em:
+   APK-Pronto\StrikeKids.apk
+
+O GERAR_APK faz tudo sozinho e mostra cada passo na janela:
+  - trabalha numa COPIA do projeto em C:\StrikeKidsBuild (pasta curta e
+    sem acentos; o projeto original nao e alterado);
+  - acha no PC ou BAIXA o que faltar: Godot 4.6.1, Java (JDK 17), Android
+    SDK (aceita as licencas e instala platform-tools, build-tools 35.0.1,
+    plataforma 35 e o NDK) e os templates Android do Godot (baixa so a
+    parte Android, ~300 MB, nao o pacote inteiro de 1,2 GB);
+  - gera o APK COM a camera USB (plugin StrikeCamera, build Gradle, com
+    os 3 caminhos do jogo de soco - veja "FOTO DAS CRIANCAS NA TV BOX").
+    Se a biblioteca da UVC direta nao baixar, gera com a camera do
+    sistema; se o Gradle falhar, gera um APK SEM a camera e avisa no final;
+  - nenhum passo fica parado para sempre (cada programa tem tempo-limite).
+Primeira vez: de 15 a 40 minutos (downloads, ~8 GB livres no disco C:).
+Depois: 2 a 5 minutos. Precisa de internet so na primeira vez.
+Nao clique dentro da janela (o Windows pausa o texto quando se seleciona;
+se acontecer, aperte ESC).
+
+  GERAR_APK.bat            -> APK-Pronto\StrikeKids.apk (Arduino + camera)
+  GERAR_APK.bat -Giro -1   -> se a imagem ficar de cabeca para baixo
+  GERAR_APK.bat -Giro 0    -> monitor ja em pe / TV deitada (sem giro)
+  GERAR_APK.bat -Instalar  -> instala na TV Box pelo adb
+  GERAR_APK.bat -SemCamera -> sem a camera (o Arduino continua)
+  GERAR_APK.bat -CaminhoGodot "D:\Godot\Godot_v4.6.1-stable_win64.exe"
+  GERAR_APK.bat -PastaTrabalho D:\SKB  -> outra pasta de trabalho
+
+Se der erro, envie o arquivo build\android\GERACAO-COMPLETA.log (os logs
+de cada programa ficam na mesma pasta). A chave de assinatura vai junto
+do projeto (tools\android\strikekids.keystore): o APK gerado em qualquer
+PC - e o APK pronto que veio no pacote - instala POR CIMA do anterior na
+TV Box, sem perder os recordes. (Se a TV Box tiver um Strike Kids antigo
+assinado com outra chave, desinstale-o uma vez antes.)
+
+Pacote: com.lazersport.strikekids (nao briga com o Dragon Bowling).
+O giro tambem pode ser trocado na propria maquina, no menu do operador.
+
+
+FOTO DAS CRIANCAS NA TV BOX (camera USB, ex.: Sigma)
+----------------------------------------------------
+Funciona do mesmo jeito do jogo de soco:
+  1. PERMISSAO SO NA PRIMEIRA VEZ: na primeira tela de espera o jogo mostra
+     o aviso "TOQUE EM PERMITIR" e o Android pergunta "Permitir que o
+     Strike Kids tire fotos e grave videos?" -> PERMITIR. O Android guarda
+     a resposta para sempre e o jogo NUNCA MAIS pergunta sozinho (nem no
+     meio da partida). Se alguem negar: menu do operador > TESTE DA CAMERA
+     (ou ligar "Foto das criancas") pede de novo; ou libere em Configuracoes
+     do Android > Apps > Strike Kids > Permissoes > Camera, ou rode o
+     CAMERA_TVBOX.bat no PC (libera pelo adb, sem janela).
+  2. A CAMERA ACORDA 15 s depois da abertura e FICA LIGADA (sem ninguem
+     vendo ela so conta as imagens, nao pesa no jogo). Assim a foto sai na
+     hora, sem esperar a webcam "esquentar", e o driver USB da TV Box nao
+     fica abrindo e fechando a cada partida.
+  3. ONDE ELA PROCURA a imagem, nesta ordem (se um caminho abre e nao
+     manda imagem em poucos segundos, passa para o proximo sozinho):
+       a) camera do sistema (a TV Box publica a webcam USB como camera -
+          o caso da maioria das TV Box; nao precisa de permissao USB);
+       b) Camera2 (TV Box com o sistema de camera novo);
+       c) UVC DIRETA: a webcam aberta direto pelo USB (biblioteca libuvc,
+          a mesma do jogo de soco). So no APK feito pelo GERAR_APK.bat
+          (ele baixa a libuvc). Ai o Android mostra "Permitir que o
+          Strike Kids acesse o dispositivo USB?": marque "USAR POR PADRAO"
+          e OK - fica guardado. Essa janela aparece UMA vez so, na tela de
+          espera, e so se a TV Box nao mostrar a webcam como camera do
+          sistema (depois, so pelo TESTE DA CAMERA do operador). O APK
+          pronto nao tem a libuvc: nele a webcam nunca pede permissao USB
+          (e o Android nao pergunta mais "abrir o Strike Kids?" quando a
+          camera e ligada).
+     Sem imagem por 30 s, a camera reabre do zero na tela de espera (no
+     maximo 3 vezes; abrir e fechar seguido derrubava a TV Box no soco).
+  4. SORRIA!: 1 jogador = 1 foto; 2 jogadores = 2 fotos (uma de cada vez:
+     "quem joga com o BOB", depois "quem joga com a MIA"). A foto espera
+     uma imagem boa (nem escura, nem lisa) por ate 4 s.
+     Sem camera (ou com ela muda): o jogo pula o SORRIA! e usa os mascotes.
+  5. TESTE: menu do operador > "Teste da camera" mostra a imagem ao vivo
+     (Z / B giram). Se nao vier imagem, a tela mostra o RELATORIO: versao
+     do Android, cameras que o sistema enxerga, aparelhos USB, permissoes,
+     se a libuvc esta no APK e o que o jogo tentou.
+     CAMERA_TVBOX.bat (no PC, com o adb): libera a camera, abre o jogo e
+     grava CAMERA_RELATORIO.txt (USB, cameras do Android e o diario da
+     camera do jogo). Com a TV Box na rede: CAMERA_TVBOX.bat 192.168.0.50
+
+
+ARDUINO DA MAQUINA: 5 SENSORES, PORTA DAS BOLAS E BOTAO DE CONFIGURACAO
+-----------------------------------------------------------------------
+Os 5 sensores da pista, o botao de configuracao e a trava da porta das
+bolas ficam num Arduino (Uno, Nano - original ou clone CH340 -, Pro Mini
+5 V, Mega ou Leonardo) ligado num USB da TV Box. O firmware esta em
+arduino/strike_kids/strike_kids.ino.
+O DESENHO de onde vai cada fio, com o passo a passo do primeiro START,
+esta em docs/ligacao_arduino.pdf (para imprimir) e docs/ligacao_arduino.png.
+
+LIGACOES (padrao; da para mudar no comeco do .ino)
+  Sensores, da ESQUERDA para a DIREITA (olhando da crianca para a tela):
+    S1 = D2    S2 = D3    S3 = D4 (centro)    S4 = D5    S5 = D7
+    Sensor optico/infravermelho (saida NPN), chave ou micro-switch: o fio
+    de sinal no pino e o GND no GND do Arduino (o pino ja tem pull-up).
+    Sensor de 12 V: alimente pela fonte de 12 V, GND comum com o Arduino,
+    e so o fio de SINAL no pino. Antes de ligar no pino, meca o fio de
+    sinal (sensor ligado, com e sem bola): nunca pode dar 12 V (sensor
+    PNP, ou com resistor interno para os 12 V, queima o Arduino).
+  Botao de CONFIGURACAO: A0 e GND (entra e sai do menu do operador)
+  START (opcional, a Zero Delay tambem vale): A1 e GND
+  Moedeiro / FICHA (opcional): A2 e GND
+  TRAVA DA PORTA:
+    SERVO no D9 (no Mega: D11). Alimente o servo por uma fonte de 5-6 V
+      propria (servo grande puxa muita corrente) e ligue o GND dela no
+      GND do Arduino. Fechada = 0 grau, aberta = 90 graus
+      (SERVO_FECHADA / SERVO_ABERTA no .ino).
+    ou RELE no D8 (modulo rele -> trava solenoide, motor ou eletroima).
+      O modulo comum liga com LOW (RELE_LIGA_EM_LOW = 1).
+      ATENCAO: trava SOLENOIDE comum nao pode ficar ligada muito tempo;
+      se a sua for assim, ponha RELE_TEMPO_MAX_S = 5 (liga 5 s e solta).
+  Fita de LED WS2812 (NeoPixel), opcional: D6 (60 LEDs; NUM_LEDS no .ino)
+  LED da placa (D13): pisca a cada sensor/botao acionado.
+
+GRAVAR O ARDUINO (uma vez)
+  1. Instale a IDE do Arduino no PC e, nela, a biblioteca "Adafruit
+     NeoPixel" (Ferramentas > Gerenciar bibliotecas). Sem fita de LED:
+     troque USAR_LEDS para 0 no comeco do .ino e nao precisa dela.
+  2. Abra arduino/strike_kids/strike_kids.ino, escolha a placa e a porta
+     (Nano clone: "Arduino Nano" e, se nao gravar, processador
+     "ATmega328P (Old Bootloader)") e clique em Carregar.
+  3. Teste no PC: Monitor Serial a 9600 -> aparece OLA:STRIKE_KIDS:1;
+     passe a mao num sensor -> S:1 ... S:5; o botao -> CFG.
+
+NA TV BOX
+  - Ligue o Arduino num USB da TV Box (o Arduino e alimentado por ele).
+  - PERMISSAO SO NA PRIMEIRA VEZ: na primeira tela de espera aparece o
+    aviso "MARQUE SEMPRE ABRIR" e o Android pergunta "Permitir que o app
+    Strike Kids acesse o USB...?": marque "SEMPRE ABRIR" (ou "USAR POR
+    PADRAO") e OK. Marcado, o Android libera sozinho em todo boot e nada
+    mais aparece; ao ligar o Arduino, o proprio Android abre o jogo. O
+    jogo pede essa janela UMA vez por Arduino (fica anotado) e nunca mais
+    sozinho. Se alguem fechar sem marcar: TESTE DOS SENSORES (ou CALIBRAR
+    / TESTE DA PORTA) no menu do operador pede de novo.
+  - A PORTA fica FECHADA na espera e ABRE logo depois do START (a crianca
+    ja escolhe o amigo rolando a bola). No fim da partida ela FECHA (as
+    bolas da ultima jogada voltam e ficam). No menu do operador fica
+    fechada. Se o jogo sumir (cabo solto, TV Box desligada) com a porta
+    aberta, o Arduino fecha sozinho em 15 s.
+  - O botao de CONFIGURACAO abre o menu do operador POR CIMA do jogo
+    (pausado, nada e desmontado: entra e sai na hora, sem travar);
+    apertado de novo, volta ao jogo (dentro de um teste, sai do teste).
+  - MENU DO OPERADOR, para a instalacao:
+      TESTE DOS SENSORES: cada sensor mostra ao vivo "o livre" / "* BOLA"
+        e conta as passadas - para alinhar os sensores.
+      CALIBRAR SENSORES (pista vazia): o nivel de cada sensor sem bola
+        vira o "repouso" (serve para sensor normalmente fechado ou
+        aberto). Fica gravado no Arduino.
+      Sensores invertidos: ligou da direita para a esquerda? Troque aqui.
+      TESTE DA PORTA: C ou START abre/fecha, com a confirmacao do Arduino.
+      Porta invertida: abriu quando devia fechar? Troque aqui.
+      TESTE DA CAMERA: ver "FOTO DAS CRIANCAS NA TV BOX".
+    Sem o Arduino, os testes mostram o porque (USB, chip, permissao).
+  - No PC (versao Windows) nao tem Arduino: o teclado faz tudo
+    (A S D F G = sensores, 1 = START, 9 = configuracao).
+
+TESTES DO FIRMWARE (para quem mexer no .ino, no Linux): tools/testes/
+arduino/rodar.sh compila IGUAL a IDE do Arduino (arduino-builder) para
+Uno, Nano, Mega e Leonardo e roda o firmware num ATmega328P simulado
+(simavr), conferindo sensores, botoes, moedeiro, servo, rele, calibracao
+e o fechamento sozinho.
+Dica para quem mexer no .ino: declare os tipos (enum, struct) no COMECO
+do arquivo, antes da primeira funcao. A IDE escreve sozinha a declaracao
+de cada funcao logo antes da primeira funcao do arquivo; um tipo
+declarado mais abaixo ainda nao existe ali e da o erro "was not declared
+in this scope".
+
+
+BOTOES DA ZERO DELAY (opcional; mesmo mapa do Dragon Bowling)
+-------------------------------------------------------------
+Com o Arduino ela nao e mais necessaria, mas continua valendo junto
+(por exemplo, so para o START). No MODO TECLADO cada botao manda uma
+tecla.
+
+  STR = START (1 / Espaco)        SELECT = credito (5)
+  Quadrado = sensor ESQUERDA (A)  X = MEIO-ESQUERDA (S)
+  Bolinha  = CENTRO (D)           Triangulo = MEIO-DIREITA (F)
+  R1 = DIREITA (G)                R2 = CONFIGURACAO / OPERADOR (9)
+
+Tambem funciona se a placa estiver no modo joystick (os botoes ja vem
+com os numeros do Android: X 0, Bolinha 1, Quadrado 2, Triangulo 3,
+SELECT 4, START 6, R1 10, R2 16).
+
+Se algum botao cair na funcao errada: no menu do operador escolha
+"CONFIGURAR BOTOES DA PLACA" (ou, na tela inicial, SEGURE qualquer botao
+por 10 segundos) e aperte na ordem pedida. Fica gravado na TV Box.
+
+
+MENU DO OPERADOR (botao de configuracao)
+----------------------------------------
+Navega com os proprios sensores: X sobe, V desce, Z diminui, B aumenta,
+C ou START escolhe, CONFIGURACAO volta ao jogo.
+Ou com o CONTROLE REMOTO da TV Box: setas para cima/baixo andam, setas
+para os lados mudam o valor, OK escolhe e VOLTAR sai (de um teste, ou do
+menu de volta ao jogo). A tecla MENU do controle tambem abre o menu. No
+jogo, o VOLTAR do controle nao fecha o jogo sem querer.
+O menu abre POR CIMA do jogo pausado: entrar e sair e instantaneo (o jogo
+volta para a tela de espera). So tres ajustes precisam montar o jogo de
+novo ao sair (aparece "APLICANDO OS AJUSTES..." por um instante): o
+Cenario (fundo), a qualidade BAIXA (liga/desliga os contornos) e virar a
+tela de em pe para deitada (giro 0).
+
+  Rodadas por jogador (1-10, padrao 3)     Bolas por rodada (1-3, padrao 3)
+  Dificuldade: facil / normal / dificil    Para-choques nas canaletas
+  Replay do strike                         Demonstracao na tela inicial
+  Modo livre ou fichas por partida         Tempo sem jogar ate o aviso
+  Volume da musica e dos efeitos           Som na demonstracao
+  Qualidade grafica (automatica/alta/media/baixa)
+  Cenario (fundo): COMPLETO (padrao desta versao, a ALTA) ou LEVE
+  Mostrar desempenho na tela (QPS) - TESTE DE DESEMPENHO (20 s)
+  Giro da tela (1, -1, 0)
+  Teste dos sensores (ao vivo, com o Arduino) - Calibrar sensores
+  Sensores invertidos - Teste da porta - Porta invertida
+  Foto das criancas (camera) - Teste da camera
+  Zerar recordes - Restaurar padrao de fabrica
+  Contadores: partidas, strikes, moedas, estado do Arduino e da camera
+  Aparelho: modelo, versao do Android, placa de video, nucleos e memoria
+    (para saber qual TV Box e - ver "TV BOX TX9" abaixo)
+
+DUAS VERSOES: ALTA (esta, no GitHub "beta-advanced") e LEVE (GitHub "beta")
+---------------------------------------------------------------------------
+O jogo e o mesmo nas duas (mesmas regras, pista, pinos, bichinhos, fisica
+e correcoes de fluidez). Muda so o CENARIO (o fundo):
+  COMPLETO (versao ALTA, padrao desta): chao e ceu desenhados pixel a pixel (gramado com
+    florzinhas, crateras, conchinhas, estrelas, raios de luz), toda a
+    decoracao (arvores, baloes, nuvens, peixinhos, bolhas, fumaca),
+    contornos e neblina de profundidade da placa de video.
+    AGORA RAPIDA: o chao completo usa o mesmo desenho do leve (uma conta
+    por pixel em vez de 9 sorteios - era o que deixava a ALTA lenta) com a
+    luz e a neblina EXATAS do motor (a cor nao mudou); o ceu e os
+    contornos tambem ficaram mais baratos. Mesmo visual, bem mais leve.
+  LEVE (padrao da versao do GitHub "beta", para a TV Box SmartPro / Mali-G31): o mesmo
+    desenho do chao feito com contas ate 4x mais baratas, a luz do chao e
+    da decoracao calculada por vertice (nao por pixel), metade da
+    decoracao do fundo e sem contorno nela, ceu simples e uma neblina
+    leve so no fundo (por vertice). Pista, pinos, maquina e bichinhos
+    continuam iguais ao completo.
+Da para trocar no menu do operador ("Cenario (fundo)") sem gerar outro
+APK - vale ao voltar ao jogo. O padrao de cada versao fica no
+project.godot (strike/video/cenario = "leve" ou "completo").
+
+TV BOX TX9 (para a versao ALTA)
+  "TX9" e o nome de varias TV Boxes com chips DIFERENTES. O APK serve em
+  todas que conseguem rodar o jogo:
+  * vem com as duas versoes do programa (32 e 64 bits): instala tambem nas
+    TV Boxes com Android de 32 bits (comum na TX9 com Amlogic S912);
+  * pede Android 7.0 ou mais novo (a TX9 Pro/TX9S com S912 vem com 7.1);
+  * precisa de placa de video com OpenGL ES 3: RODA na Mali-T820 (Amlogic
+    S912 - TX9 Pro / TX9S), Mali-T720 (Allwinner H6), Mali-G31 (Allwinner
+    H313 / H616 / H618, Amlogic S905X2/X3/X4) e Mali-G52. NAO RODA nas de
+    Mali-400/450 (Rockchip RK3228A/RK3229/RK3318/RK3328, Amlogic S905W/
+    S905X), que so tem OpenGL ES 2 - nelas o jogo nem abre.
+  Para ver qual e a sua: menu do operador, linha "Aparelho" (placa de
+  video). Se o jogo nao abrir, instale o app CPU-Z: a aba SOC mostra o
+  chip e a GPU.
+  Na primeira vez, deixe a "Qualidade grafica" em AUTOMATICA e rode o
+  TESTE DE DESEMPENHO (menu do operador): ele mede a TV Box e ja deixa a
+  qualidade certa; a nitidez automatica cuida do resto.
+
+RODANDO LISO (PC e TV Box):
+  * FISICA NUMA LINHA PROPRIA: o motor de fisica (Jolt) roda numa linha de
+    execucao separada e com so 2 linhas de apoio (com 4 elas mais
+    esperavam umas pelas outras do que trabalhavam): o custo da fisica no
+    quadro do jogo caiu ~58% (nos piores momentos, a batida da bola nos
+    pinos, ~45%). Os resultados das jogadas nao mudam (a tabela de
+    jogadas continua valendo).
+  * LETRAS PRONTAS: desenhar uma letra com contorno na primeira vez que um
+    texto aparece num tamanho novo dava travadinhas nas cenas. As fontes
+    vem com as letras ja desenhadas em cada tamanho usado
+    (fontes/*_pronta.res, feitas jogando o jogo inteiro sozinho:
+    tools/testes/glifos.gd anota em dados/glifos.json e
+    tools/testes/fontes_prontas.gd monta as fontes). As letras de cada
+    tamanho ficam juntas numa textura do tamanho certo: ~19 MB na memoria
+    (o motor sozinho reservaria ~100 MB em paginas quase vazias).
+  * FECHAR SEM CAIR: ao fechar, o jogo espera os trabalhos em segundo
+    plano (gravar ajustes, ler e gravar fotos) terminarem - antes eles
+    podiam continuar depois do motor apagar tudo e o jogo caia ao sair.
+  * TROCA DE RESOLUCAO SO NO CLARAO: a nitidez automatica decide no meio
+    da demonstracao, mas so troca o tamanho da imagem 3D escondida no
+    clarao branco (fim da demonstracao, troca de cenario, volta do menu).
+  * NADA DE DISCO NEM DE ANDROID NO QUADRO DO JOGO: contadores, fichas,
+    recordes e classificacao sao gravados em segundo plano; a procura da
+    camera e do Arduino no USB (que na TV Box leva dezenas de ms) tambem;
+    as fotos do recorde e da classificacao sao lidas na abertura.
+  * MOMENTOS PESADOS ESPALHADOS: soltar a bola e o strike fazem parte do
+    trabalho no quadro seguinte; os efeitos (estrelas, confete, poeira)
+    reaproveitam malhas e cores; o quadro "Melhores de hoje" so e montado
+    de novo quando muda; as curvas das animacoes sao calculadas na
+    abertura (antes, o primeiro strike / a primeira danca davam tranco).
+  * SEM ENGASGOS: as imagens que so aparecem depois (STRIKE!, SPARE!,
+    cartoes dos cenarios, fim de jogo, as bolas de cada bichinho) e as
+    particulas sao preparadas na abertura; no PC a camera que nao foi
+    achada e procurada de novo no maximo a cada 15 s (procurar travava o
+    quadro);
+    as fotos sao gravadas em segundo plano; e a nitidez automatica so
+    troca o tamanho da imagem 3D entre uma bola e outra (nunca no meio da
+    jogada) e grava o ajuste so na tela inicial.
+  * 3D NITIDO, NO TAMANHO DA TELA: na TV Box 1080p o 3D e desenhado em
+    1080 x 1920 (o mesmo tamanho da tela) com ANTISSERRILHADO 4x - na
+    placa Mali da TV Box o antisserrilhado e feito dentro da propria placa
+    e sai quase de graca. No PC, no tamanho da tela (ate 4K).
+  * NITIDEZ AUTOMATICA: a cada 2 s o jogo mede os quadros por segundo. Se
+    a placa nao segurar (~52 ou menos), a imagem 3D diminui 10% (no
+    maximo ate 70%) e e esticada ate a tela; quando sobra folga, ela VOLTA
+    A CRESCER sozinha ate 100%. O ponto bom fica guardado para quando a
+    maquina ligar de novo. (Antes ela so diminuia e nunca voltava - era o
+    que deixava a imagem borrada.)
+  * Menu do operador > "Nitidez do 3D": AUTOMATICA (padrao) ou fixa em
+    100%, 90%, 80% ou 70% - para quem prefere nitidez maxima sempre.
+  * O que mais pesa numa placa de video fraca e PINTAR PIXELS. Por isso a
+    pista, o piso e o arco do portal sao desenhados "sem luz" (a luz ja
+    vem pintada nas cores), com conta fixa por pixel; nao tem sombra do
+    sol (no Godot "Compatibilidade" ela desenha tudo 2 vezes): as sombras
+    sao manchas pintadas; MSAA e brilho (glow) so no PC.
+  * Bonecos, pinos e cenario com malhas leves; pecas paradas juntadas em
+    poucas malhas (por material e regiao): 100 a 200 desenhos por quadro.
+  * MOVIMENTO LISO EM QUALQUER TELA: a fisica anda 120 passos por segundo
+    e a tela 60, 75, 144... A bola, os pinos e a maquina de pinos aparecem
+    sempre no lugar certo do instante de cada quadro (interpolacao da
+    fisica), entao nao "tremem" mesmo quando os quadros por segundo
+    oscilam. O REPLAY usa a mesma gravacao (cada passo da fisica).
+    Na CAMERA LENTA a fisica continua com o mesmo passo (so da menos
+    passos por segundo): a jogada sai igual em qualquer maquina.
+  * Na abertura (com a marca na tela) o jogo prepara todos os desenhos
+    (materiais de todos os cenarios, particulas, telas): nada de engasgo
+    na primeira troca de cenario, primeiro strike ou bola de fogo.
+
+  ALTA  (PC): MSAA 4x, brilho (glow), anisotropico 4x, 3D no tamanho da
+        tela ate 4K (e realce de bordas se precisar esticar).
+  MEDIA (TV Box): MSAA 4x, anisotropico 2x, 3D ate 1080 px (tela 1080p).
+  BAIXA (TV Box fraca): MSAA 2x, sem neblina e sem contornos, 3D 720 px.
+Todas as imagens tem mipmaps (nada cintila nem serrilha quando aparece
+pequeno); rostos, bola, madeira e letreiros usam compressao de alta
+qualidade da placa de video (pouca memoria, sem perder nitidez).
+
+
+COMO MEDIR SE ESTA LISO (na propria TV Box ou no PC)
+----------------------------------------------------
+Nao precisa de programa nenhum: o medidor esta dentro do jogo.
+
+1) PAINEL NA TELA - no PC aperte F3; na TV Box: menu do operador >
+   "Mostrar desempenho na tela (QPS)". Aparece no canto de cima:
+
+     58 QPS   (17.2 ms, pior 24 ms)          <- verde, amarelo ou vermelho
+     CPU 4.1 ms - placa: 3D 9.8 ms, tela 1.2 ms
+     142 desenhos - 168 mil triangulos
+     3D 1080x1920 (100%) - MEDIA - memoria 180 MB - video 120 MB
+
+   QPS = quadros por segundo. 60 = perfeito; 50 ou mais = liso (verde);
+         30 a 50 = joga, mas da para ver travadinhas (amarelo);
+         menos de 30 = travado (vermelho).
+   ms  = quanto tempo leva cada quadro (60 QPS = 16,7 ms por quadro).
+         "pior" = o quadro mais demorado do ultimo meio segundo (engasgo).
+   CPU = o processador (regras do jogo, fisica, preparar os desenhos).
+   placa: 3D / tela = quanto a PLACA DE VIDEO leva para desenhar o 3D e a
+         interface (so no PC: no Android o Godot nao recebe essa medida e
+         aparece "o Android nao informa" - na TV Box valem o QPS e os ms).
+         Se "placa 3D" passar de ~14 ms, quem pesa e a placa de video:
+         baixe a qualidade (ou deixe na AUTOMATICA). Se a CPU passar de
+         ~14 ms, o processador e que nao da conta.
+   desenhos / triangulos = quantas coisas a placa desenha por quadro.
+   3D 1080x1920 (100%) = tamanho da imagem 3D e a nitidez automatica.
+
+2) TESTE DE DESEMPENHO - menu do operador > "TESTE DE DESEMPENHO".
+   Por 20 segundos o jogo passa pelas 4 vistas mais pesadas (pista de
+   frente, pinos e portal, bichinhos, cenario de cima) e no fim mostra a
+   media de QPS, o pior momento, cada vista e a QUALIDADE RECOMENDADA.
+   Com a qualidade em AUTOMATICA ele ja passa a usar a recomendada.
+   O resultado fica gravado na TV Box (user://desempenho.txt).
+
+3) NO PC, PARA QUEM MEXE NO JOGO: a bancada de testes mede quanto CADA
+   parte custa (liga e desliga uma de cada vez, em 4 vistas):
+     godot --path . -- --janela=720x1280 --benchmark
+   e o teste do replay/movimento (anda por igual em todo quadro?):
+     godot --path . --fixed-fps 50 -- --janela=540x960 --replay-teste
+   e o cacador de engasgos (cada quadro acima de 30 ms dividido em
+   fisica / jogo / desenho; janela pequena para o desenho pesar pouco):
+     godot --path . -- --janela=72x128 --desempenho --engasgos --roteiro=pasta
+
+DICAS PARA OS PROXIMOS JOGOS 3D NA TV BOX (Mali-G31, 2 GB):
+  * Meta: 16 ms por quadro. Na TV Box quem estoura quase sempre e a placa
+    de video pintando pixels, nao o processador.
+  * Desenhe o 3D numa SubViewport no tamanho da tela e deixe uma
+    nitidez automatica diminuir/aumentar esse tamanho (70% a 100%) conforme
+    os quadros por segundo; os textos sempre na resolucao da tela.
+  * Na TV Box (placa Mali) use MSAA 4x: e quase de graca e deixa tudo
+    liso. Nao confie em testes feitos sem placa de video para decidir isso.
+  * Nada de sombra em tempo real, brilho (glow), SSAO, reflexos nem
+    neblina volumetrica na TV Box.
+  * Superficies grandes (chao, pista, ceu, paredes) com shader simples e
+    "unshaded", com a luz pintada nas cores.
+  * Ate ~150 desenhos e ~200 mil triangulos por quadro; junte as pecas
+    paradas numa malha so (por material).
+  * Texturas com mipmaps e compressao; com 2 GB de memoria, cuidado com
+    texturas gigantes (uma 4096 x 4096 sem compressao ocupa 64 MB).
+  * Coisas movidas pela fisica: ligue a interpolacao da fisica so nelas.
+  * Teste SEMPRE com o painel ligado, na vista mais pesada do jogo.
+
+
+TV BOX PROELETRONIC SMARTPRO 4K (2 GB)
+-------------------------------------
+O jogo e feito para Android com placa de video OpenGL ES 3 (toda TV Box
+com Android 10 ou mais novo, como a Pro Ultra, tem). Para conferir a sua:
+instale o app "AIDA64" (ou "CPU-Z") pela Play Store e veja em "Display" /
+"GPU": Mali-G31, Mali-G52, Mali-T720, PowerVR GE8300 etc. = OK.
+Se aparecer Mali-400 ou Mali-450 (so OpenGL ES 2.0), o Godot 4 nao abre
+nessa placa (e o caso da S905L do DragonBowling1-android7.1) e seria
+preciso a versao em Godot 3 - me avise o resultado.
+Com 2 GB de memoria o jogo cabe folgado. A qualidade grafica AUTOMATICA
+(menu do operador) baixa a resolucao do 3D sozinha se a placa for fraca.
+
+
+LEDS (fita no Arduino da maquina)
+---------------------------------
+O mesmo Arduino dos sensores (arduino/strike_kids) acende a fita: MENU
+(arco-iris), BLUE (vez do Bob), RED (vez da Mia), IDLE, NORMAL, STRIKE,
+SPARE, MISS - os mesmos efeitos do Dragon Bowling. O APK pronto e o do
+GERAR_APK ja levam o plugin USB (StrikeSerial, driver proprio: nao baixa
+nada de fora). O firmware antigo so de LEDs (leds_boliche) ainda conecta,
+mas sem sensores, porta e botao: grave o strike_kids.
+
+
+SONS E VOZES
+------------
+Todos os sons e musicas sao originais, gerados por tools/sons/gerar_sons.py.
+Para trocar um som, grave um arquivo com o MESMO nome em sons/.
+Vozes opcionais: coloque sons/voz/strike.wav, sons/voz/spare.wav,
+sons/voz/ops.wav, sons/voz/vez.wav ... e elas tocam junto, sem mexer no
+codigo.
+
+
+PASTAS
+------
+  cenas/      cenas do Godot (principal, operador, configuracao dos botoes)
+  scripts/    o jogo (principal, mundo, temas, maquina, personagem,
+              animacoes, pinos, bola, jogada, placar, camera_cine, hud...)
+  autoload/   Tela (responsiva + giro), Ajustes, Sons, ArcadeControls,
+              ArduinoBridge, Fotos (camera: plugin Android, ffmpeg no PC)
+  addons/     StrikeCamera (camera USB no Android), StrikeSerial (Arduino:
+              sensores, porta, botao e LEDs pelo USB)
+  arduino/    strike_kids/ (firmware do Arduino da maquina)
+  dados/      tabela de jogadas calibrada (vai no APK)
+  modelos/    mascotes, pinos e cenarios 3D (gerados pelas ferramentas)
+  texturas/ ui/ fontes/ sons/ shaders/
+  tools/      ferramentas de producao (NAO vao no APK):
+              modelos/ (modelador 3D), arte/ (artes 2D), sons/, testes/
+  marketing/  imagens e video para divulgacao
+  docs/       documento do jogo

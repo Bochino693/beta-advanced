@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Arduinos e chips USB-serial que o Strike Kids assume sozinho -->
+<resources>
+    <!-- Arduino original (Uno, Mega, Leonardo, Micro, Nano Every) -->
+    <usb-device vendor-id="9025" />
+    <usb-device vendor-id="10755" />
+    <!-- CH340 / CH341 / CH9102 (Nano e Uno "clone") -->
+    <usb-device vendor-id="6790" />
+    <!-- FTDI (Nano original antigo) -->
+    <usb-device vendor-id="1027" />
+    <!-- Silicon Labs CP210x -->
+    <usb-device vendor-id="4292" />
+    <!-- SparkFun / Adafruit (placas com ATmega32U4) -->
+    <usb-device vendor-id="6991" />
+    <usb-device vendor-id="9114" />
+</resources>

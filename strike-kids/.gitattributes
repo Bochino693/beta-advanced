@@ -1,0 +1,14 @@
+* text=auto eol=lf
+*.bat text eol=crlf
+*.ps1 text eol=crlf
+LEIA-ME*.txt text eol=crlf
+*.png binary
+*.jpg binary
+*.wav binary
+*.ogg binary
+*.ttf binary
+*.res binary
+*.scn binary
+*.aar binary
+*.mp4 binary
+*.keystore binary

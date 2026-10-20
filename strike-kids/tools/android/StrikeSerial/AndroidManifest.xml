@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="com.lazersport.strikeserial">
+
+    <uses-sdk android:minSdkVersion="21" />
+
+    <uses-feature android:name="android.hardware.usb.host" android:required="false" />
+
+    <application>
+        <!-- encaixe do Arduino: "Usar por padrão" guarda a permissão USB -->
+        <activity
+            android:name="com.lazersport.strikeserial.StrikeArduinoAtivo"
+            android:exported="true"
+            android:excludeFromRecents="true"
+            android:noHistory="true"
+            android:theme="@android:style/Theme.Translucent.NoTitleBar">
+            <intent-filter>
+                <action android:name="android.hardware.usb.action.USB_DEVICE_ATTACHED" />
+            </intent-filter>
+            <meta-data
+                android:name="android.hardware.usb.action.USB_DEVICE_ATTACHED"
+                android:resource="@xml/strike_usb_arduino" />
+        </activity>
+        <meta-data
+            android:name="org.godotengine.plugin.v2.StrikeSerial"
+            android:value="com.lazersport.strikeserial.StrikeSerial" />
+    </application>
+</manifest>
